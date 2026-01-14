@@ -1,6 +1,6 @@
 <?php
 
-namespace Exbil\CloudApi\Handlers;
+namespace Exbil\CloudApi\RootServer;
 
 use Exbil\CloudApi\Client;
 use Exbil\CloudApi\Exceptions\ApiException;
@@ -10,82 +10,13 @@ class RootServer
 {
     private Client $client;
     private string $basePath = 'v1/products/rootserver';
+    private ?Location $locationHandler = null;
+    private ?Cluster $clusterHandler = null;
+    private ?Power $powerHandler = null;
 
     public function __construct(Client $client)
     {
         $this->client = $client;
-    }
-
-    // ==================== LOCATIONS & CLUSTERS ====================
-
-    /**
-     * Get all available datacenters/locations
-     *
-     * @throws ApiException
-     * @throws GuzzleException
-     */
-    public function getLocations(): array
-    {
-        return $this->client->get("{$this->basePath}/locations");
-    }
-
-    /**
-     * Get clusters for a specific datacenter
-     *
-     * @throws ApiException
-     * @throws GuzzleException
-     */
-    public function getClustersByDatacenter(string $datacenterSlug): array
-    {
-        return $this->client->get("{$this->basePath}/locations/{$datacenterSlug}/clusters");
-    }
-
-    /**
-     * Get all clusters or a specific cluster
-     *
-     * @throws ApiException
-     * @throws GuzzleException
-     */
-    public function getClusters(?string $clusterSlug = null): array
-    {
-        $path = "{$this->basePath}/clusters";
-        if ($clusterSlug) {
-            $path .= "/{$clusterSlug}";
-        }
-        return $this->client->get($path);
-    }
-
-    /**
-     * Get available OS versions for a cluster
-     *
-     * @throws ApiException
-     * @throws GuzzleException
-     */
-    public function getOsList(string $clusterSlug): array
-    {
-        return $this->client->get("{$this->basePath}/clusters/{$clusterSlug}/os-list");
-    }
-
-    /**
-     * Get price list for a cluster
-     *
-     * @throws ApiException
-     * @throws GuzzleException
-     */
-    public function getPriceList(string $clusterSlug): array
-    {
-        return $this->client->get("{$this->basePath}/clusters/{$clusterSlug}/prices");
-    }
-
-    /**
-     * Calculate price for a server configuration
-     *
-     * @throws ApiException
-     * @throws GuzzleException
-     */
-    public function calculatePrice(string $clusterSlug, array $config): array
-    {
-        return $this->client->post("{$this->basePath}/clusters/{$clusterSlug}/price-calc", $config);
     }
 
     // ==================== SERVER LISTING ====================
@@ -109,7 +40,7 @@ class RootServer
      * @throws ApiException
      * @throws GuzzleException
      */
-    public function getById(int $vmId): array
+    public function get(int $vmId): array
     {
         return $this->client->get("{$this->basePath}/{$vmId}");
     }
@@ -206,52 +137,6 @@ class RootServer
         return $this->client->post("{$this->basePath}/{$vmId}/reinstall", $config);
     }
 
-    // ==================== POWER CONTROL ====================
-
-    /**
-     * Start server
-     *
-     * @throws ApiException
-     * @throws GuzzleException
-     */
-    public function start(int $vmId): array
-    {
-        return $this->client->post("{$this->basePath}/{$vmId}/power/start");
-    }
-
-    /**
-     * Stop server (graceful shutdown)
-     *
-     * @throws ApiException
-     * @throws GuzzleException
-     */
-    public function stop(int $vmId): array
-    {
-        return $this->client->post("{$this->basePath}/{$vmId}/power/stop");
-    }
-
-    /**
-     * Reboot server
-     *
-     * @throws ApiException
-     * @throws GuzzleException
-     */
-    public function reboot(int $vmId): array
-    {
-        return $this->client->post("{$this->basePath}/{$vmId}/power/reboot");
-    }
-
-    /**
-     * Force stop server (power off)
-     *
-     * @throws ApiException
-     * @throws GuzzleException
-     */
-    public function forceStop(int $vmId): array
-    {
-        return $this->client->post("{$this->basePath}/{$vmId}/power/force-stop");
-    }
-
     // ==================== MONITORING & STATUS ====================
 
     /**
@@ -285,5 +170,29 @@ class RootServer
     public function getTasks(int $vmId, int $limit = 50): array
     {
         return $this->client->get("{$this->basePath}/{$vmId}/tasks", ['limit' => $limit]);
+    }
+
+    /**
+     * Location Management
+     */
+    public function location(): Location
+    {
+        return $this->locationHandler ??= new Location($this->client);
+    }
+
+    /**
+     * Cluster Management
+     */
+    public function cluster(): Cluster
+    {
+        return $this->clusterHandler ??= new Cluster($this->client);
+    }
+
+    /**
+     * Power Control
+     */
+    public function power(): Power
+    {
+        return $this->powerHandler ??= new Power($this->client);
     }
 }

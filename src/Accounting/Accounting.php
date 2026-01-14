@@ -1,6 +1,6 @@
 <?php
 
-namespace Exbil\CloudApi\Handlers;
+namespace Exbil\CloudApi\Accounting;
 
 use Exbil\CloudApi\Client;
 use Exbil\CloudApi\Exceptions\ApiException;
@@ -9,6 +9,7 @@ use GuzzleHttp\Exception\GuzzleException;
 class Accounting
 {
     private Client $client;
+    private string $basePath = 'v1/accounting';
 
     public function __construct(Client $client)
     {
@@ -23,18 +24,18 @@ class Accounting
      */
     public function getUserData(): array
     {
-        return $this->client->get('v1/accounting/user-data');
+        return $this->client->get("{$this->basePath}/user-data");
     }
 
     /**
-     * Get credit status information
+     * Get current credit status
      *
      * @throws ApiException
      * @throws GuzzleException
      */
     public function getCreditStatus(): array
     {
-        return $this->client->get('v1/accounting/credit-status');
+        return $this->client->get("{$this->basePath}/credit-status");
     }
 
     /**
@@ -45,25 +46,25 @@ class Accounting
      */
     public function getUsage(): array
     {
-        return $this->client->get('v1/accounting/usage');
+        return $this->client->get("{$this->basePath}/usage");
     }
 
     /**
-     * Get detailed usage records with filtering
+     * Get detailed usage records with optional filters
      *
      * @param array $filters Available filters:
-     *   - start: ISO date string (default: start of month)
-     *   - end: ISO date string (default: now)
-     *   - product_type: string filter
-     *   - product_id: integer filter
-     *   - limit: integer (max 500, default 100)
+     *   - start: string (Y-m-d)
+     *   - end: string (Y-m-d)
+     *   - product_type: string
+     *   - limit: int
+     *   - offset: int
      *
      * @throws ApiException
      * @throws GuzzleException
      */
     public function getUsageDetails(array $filters = []): array
     {
-        return $this->client->get('v1/accounting/usage/details', $filters);
+        return $this->client->get("{$this->basePath}/usage/details", $filters);
     }
 
     /**
@@ -74,17 +75,17 @@ class Accounting
      */
     public function getInvoices(): array
     {
-        return $this->client->get('v1/accounting/invoices');
+        return $this->client->get("{$this->basePath}/invoices");
     }
 
     /**
-     * Get invoice by ID
+     * Get a specific invoice by ID
      *
      * @throws ApiException
      * @throws GuzzleException
      */
-    public function getInvoiceById(int $id): array
+    public function getInvoice(int $id): array
     {
-        return $this->client->get("v1/accounting/invoices/{$id}");
+        return $this->client->get("{$this->basePath}/invoices/{$id}");
     }
 }

@@ -2,15 +2,16 @@
 
 namespace Exbil\CloudApi;
 
+use Exbil\CloudApi\Accounting\Accounting;
+use Exbil\CloudApi\Domain\Domain;
 use Exbil\CloudApi\Exceptions\ApiException;
 use Exbil\CloudApi\Exceptions\AuthenticationException;
 use Exbil\CloudApi\Exceptions\ForbiddenException;
 use Exbil\CloudApi\Exceptions\NotFoundException;
 use Exbil\CloudApi\Exceptions\ValidationException;
-use Exbil\CloudApi\Handlers\Accounting;
-use Exbil\CloudApi\Handlers\Mailcow;
-use Exbil\CloudApi\Handlers\RootServer;
-use Exbil\CloudApi\Handlers\VPN;
+use Exbil\CloudApi\Mailcow\Mailcow;
+use Exbil\CloudApi\RootServer\RootServer;
+use Exbil\CloudApi\VPN\VPN;
 use GuzzleHttp\Client as GuzzleClient;
 use GuzzleHttp\Exception\GuzzleException;
 use Psr\Http\Message\ResponseInterface;
@@ -22,6 +23,7 @@ class Client
     private Credentials $credentials;
 
     private ?Accounting $accountingHandler = null;
+    private ?Domain $domainHandler = null;
     private ?RootServer $rootServerHandler = null;
     private ?VPN $vpnHandler = null;
     private ?Mailcow $mailcowHandler = null;
@@ -155,6 +157,14 @@ class Client
     public function accounting(): Accounting
     {
         return $this->accountingHandler ??= new Accounting($this);
+    }
+
+    /**
+     * Domain API - Registration, Transfer, DNS, Nameservers, Handles
+     */
+    public function domain(): Domain
+    {
+        return $this->domainHandler ??= new Domain($this);
     }
 
     /**
