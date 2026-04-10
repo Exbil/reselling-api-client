@@ -1,6 +1,6 @@
 {
     "name": "exbil/reselling-api-client",
-    "description": "PHP API Client for Exbil Reselling Portal",
+    "description": "Official PHP client for the Exbil Reselling Portal API — Root Server, VPN, Mailcow, Domain and Accounting endpoints.",
     "type": "library",
     "minimum-stability": "stable",
     "license": "BSD-2-Clause",
@@ -21,13 +21,21 @@
         "guzzlehttp/guzzle": "^7.9",
         "ext-json": "*"
     },
+    "support": {
+        "issues": "https://github.com/Exbil/reselling-api-client/issues",
+        "source": "https://github.com/Exbil/reselling-api-client"
+    },
     "keywords": [
         "exbil",
-        "cloud",
+        "reselling",
+        "hosting",
         "api",
         "client",
-        "billing",
-        "vat",
-        "geoip"
+        "rootserver",
+        "kvm",
+        "vpn",
+        "mailcow",
+        "domain",
+        "billing"
     ]
 }

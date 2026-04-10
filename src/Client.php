@@ -43,7 +43,7 @@ class Client
                 'Accept' => 'application/json',
                 'Content-Type' => 'application/json',
                 'Authorization' => 'Bearer ' . $this->credentials->getApiKey(),
-                'User-Agent' => 'ExbilResellingApiClient/1.0',
+                'User-Agent' => 'ExbilResellingApiClient/2.0',
             ],
             'timeout' => 30,
             'verify' => true,
@@ -149,6 +149,21 @@ class Client
     public function delete(string $endpoint, array $data = []): array
     {
         return $this->request('DELETE', $endpoint, ['json' => $data]);
+    }
+
+    /**
+     * Validate the configured API key.
+     *
+     * Returns the key metadata, scoped permissions per product and the
+     * remaining rate-limit budget. Useful as a connectivity smoke-test
+     * during application boot.
+     *
+     * @throws ApiException
+     * @throws GuzzleException
+     */
+    public function validateKey(): array
+    {
+        return $this->get('v1/key/validate');
     }
 
     /**

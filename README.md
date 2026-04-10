@@ -48,6 +48,20 @@ All API requests require an API key transmitted as Bearer Token:
 $client = new Client('your-api-key');
 ```
 
+For the sandbox environment use the sandbox base URL:
+
+```php
+$client = new Client('rs_sb_…', 'https://www.reselling-portal.de/api/sandbox/');
+```
+
+You can verify the configured key and inspect its scoped permissions
+at any time:
+
+```php
+$info = $client->validateKey();
+// → ['key' => [...], 'permissions' => [...], 'rate_limit' => [...]]
+```
+
 ---
 
 ## API Reference
