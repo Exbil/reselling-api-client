@@ -9,6 +9,7 @@ use Exbil\ResellingAPI\Exceptions\AuthenticationException;
 use Exbil\ResellingAPI\Exceptions\ForbiddenException;
 use Exbil\ResellingAPI\Exceptions\NotFoundException;
 use Exbil\ResellingAPI\Exceptions\ValidationException;
+use Exbil\ResellingAPI\GameServer\GameServer;
 use Exbil\ResellingAPI\Mailcow\Mailcow;
 use Exbil\ResellingAPI\RootServer\RootServer;
 use Exbil\ResellingAPI\VPN\VPN;
@@ -26,6 +27,7 @@ class Client
     private ?Domain $domainHandler = null;
     private ?RootServer $rootServerHandler = null;
     private ?VPN $vpnHandler = null;
+    private ?GameServer $gameServerHandler = null;
     private ?Mailcow $mailcowHandler = null;
 
     public function __construct(string $apiKey, string $baseUrl = 'https://reselling-portal.de/api/', ?GuzzleClient $httpClient = null)
@@ -196,6 +198,14 @@ class Client
     public function vpn(): VPN
     {
         return $this->vpnHandler ??= new VPN($this);
+    }
+
+    /**
+     * Game Server API - Servers, Files, Backups, Console, Schedules, Databases
+     */
+    public function gameServer(): GameServer
+    {
+        return $this->gameServerHandler ??= new GameServer($this);
     }
 
     /**
