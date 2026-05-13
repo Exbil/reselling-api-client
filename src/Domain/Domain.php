@@ -59,6 +59,23 @@ class Domain
     }
 
     /**
+     * Bulk check domain availability
+     *
+     * Checks the availability of up to 50 domains in a single request.
+     *
+     * @param array $domains List of domain names to check (max 50)
+     *
+     * @throws ApiException
+     * @throws GuzzleException
+     */
+    public function checkBulkAvailability(array $domains): array
+    {
+        return $this->client->post('v1/domains/check-bulk', [
+            'domains' => array_values($domains),
+        ]);
+    }
+
+    /**
      * Register a new domain
      *
      * @param string $domain Domain name

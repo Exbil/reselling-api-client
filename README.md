@@ -108,6 +108,7 @@ Domain registration, transfer, DNS management and handles.
 | `getAll()` | All domains |
 | `get(string $domain)` | Single domain |
 | `checkAvailability(string $domain)` | Check availability |
+| `checkBulkAvailability(array $domains)` | Bulk availability check (max 50) |
 | `register(string $domain, array $handles, array $nameservers, int $period)` | Register domain |
 | `transfer(string $domain, string $authcode, array $handles, array $nameservers)` | Transfer domain |
 | `sync(string $domain)` | Sync from registrar |
@@ -119,6 +120,13 @@ Domain registration, transfer, DNS management and handles.
 ```php
 // Check availability
 $check = $client->domain()->checkAvailability('example.com');
+
+// Bulk availability check (up to 50 domains per request)
+$bulk = $client->domain()->checkBulkAvailability([
+    'example.com',
+    'example.de',
+    'example.net',
+]);
 
 // Register domain
 $domain = $client->domain()->register('example.com', [
