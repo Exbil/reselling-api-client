@@ -3,7 +3,7 @@
     "description": "Official PHP client for the Exbil Reselling Portal API — Root Server, VPN, Mailcow, Domain and Accounting endpoints.",
     "type": "library",
     "minimum-stability": "stable",
-    "license": "BSD-2-Clause",
+    "license": "MIT",
     "autoload": {
         "psr-4": {
             "Exbil\\ResellingAPI\\": "src/"
