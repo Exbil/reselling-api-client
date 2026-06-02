@@ -47,7 +47,7 @@ class Client
                 'Accept' => 'application/json',
                 'Content-Type' => 'application/json',
                 'Authorization' => 'Bearer ' . $this->credentials->getApiKey(),
-                'User-Agent' => 'ExbilResellingApiClient/2.0',
+                'User-Agent' => 'ExbilResellingApiClient/1.0',
             ],
             'timeout' => 30,
             'verify' => true,
