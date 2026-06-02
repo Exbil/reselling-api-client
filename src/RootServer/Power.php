@@ -24,7 +24,7 @@ class Power
      */
     public function start(int $vmId): array
     {
-        return $this->client->post("{$this->basePath}/{$vmId}/power/start");
+        return $this->client->post("{$this->basePath}/{$vmId}/start");
     }
 
     /**
@@ -35,28 +35,28 @@ class Power
      */
     public function stop(int $vmId): array
     {
-        return $this->client->post("{$this->basePath}/{$vmId}/power/stop");
+        return $this->client->post("{$this->basePath}/{$vmId}/stop");
     }
 
     /**
-     * Reboot server
+     * Restart server
      *
      * @throws ApiException
      * @throws GuzzleException
      */
     public function reboot(int $vmId): array
     {
-        return $this->client->post("{$this->basePath}/{$vmId}/power/reboot");
+        return $this->client->post("{$this->basePath}/{$vmId}/restart");
     }
 
     /**
-     * Force stop server (power off)
+     * Kill server (force stop / power off)
      *
      * @throws ApiException
      * @throws GuzzleException
      */
     public function forceStop(int $vmId): array
     {
-        return $this->client->post("{$this->basePath}/{$vmId}/power/force-stop");
+        return $this->client->post("{$this->basePath}/{$vmId}/kill");
     }
 }

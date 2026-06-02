@@ -530,6 +530,77 @@ $client->mailcow()->domainAdmin()->update('example.com', 'admin', [
 
 ---
 
+### Cloud Services
+
+Container based services. Services and backups are addressed by their UUID.
+
+#### Main Methods
+
+| Method | Description |
+|--------|-------------|
+| `getAll(array $filters = [])` | All cloud services (filters: status, per_page, team_id) |
+| `get(string $uuid)` | Service details incl. live status |
+| `create(array $config)` | Create a service (node_id, template_slug, name, memory_limit, disk_limit, cpu_limit, …) |
+| `delete(string $uuid)` | Delete a service |
+| `reinstall(string $uuid)` | Reinstall a service |
+| `status(string $uuid)` | Live resource usage / status |
+| `sendCommand(string $uuid, string $command)` | Send a console command |
+
+```php
+$services = $client->cloudServices()->getAll(['status' => 'running']);
+$service  = $client->cloudServices()->get('a1b2c3d4-...');
+$client->cloudServices()->sendCommand('a1b2c3d4-...', 'say hello');
+```
+
+#### Power (`$client->cloudServices()->power()`)
+
+| Method | Description |
+|--------|-------------|
+| `start(string $uuid)` | Start service |
+| `stop(string $uuid)` | Stop service (graceful) |
+| `restart(string $uuid)` | Restart service |
+| `kill(string $uuid)` | Kill service (force stop) |
+
+```php
+$client->cloudServices()->power()->start('a1b2c3d4-...');
+$client->cloudServices()->power()->restart('a1b2c3d4-...');
+```
+
+#### Files (`$client->cloudServices()->files()`)
+
+| Method | Description |
+|--------|-------------|
+| `list(string $uuid, string $dir = '/')` | List a directory |
+| `read(string $uuid, string $file)` | Read file contents |
+| `write(string $uuid, string $file, string $content)` | Write a file |
+| `upload(string $uuid, string $filePath, string $dir = '/')` | Upload a local file |
+| `download(string $uuid, string $file)` | Get a download URL |
+| `delete(string $uuid, array $files)` | Delete files |
+| `compress(string $uuid, array $files, string $output)` | Compress into an archive |
+| `decompress(string $uuid, string $file, string $target)` | Extract an archive |
+
+```php
+$client->cloudServices()->files()->list('a1b2c3d4-...', '/');
+$client->cloudServices()->files()->write('a1b2c3d4-...', 'server.properties', "max-players=20\n");
+```
+
+#### Backups (`$client->cloudServices()->backups()`)
+
+| Method | Description |
+|--------|-------------|
+| `getAll(string $uuid)` | All backups |
+| `create(string $uuid, ?string $name = null, array $ignoredFiles = [])` | Create a backup |
+| `delete(string $uuid, string $backupId)` | Delete a backup |
+| `restore(string $uuid, string $backupId)` | Restore a backup |
+| `download(string $uuid, string $backupId)` | Get a backup download URL |
+
+```php
+$client->cloudServices()->backups()->create('a1b2c3d4-...', 'pre-update');
+$client->cloudServices()->backups()->restore('a1b2c3d4-...', 'backup-uuid');
+```
+
+---
+
 ## Error Handling
 
 ```php

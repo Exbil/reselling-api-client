@@ -28,6 +28,17 @@ class Location
     }
 
     /**
+     * Get a single location (by numeric id or slug), including its clusters
+     *
+     * @throws ApiException
+     * @throws GuzzleException
+     */
+    public function get(int|string $location): array
+    {
+        return $this->client->get("{$this->basePath}/locations/{$location}");
+    }
+
+    /**
      * Get clusters for a specific datacenter
      *
      * @throws ApiException

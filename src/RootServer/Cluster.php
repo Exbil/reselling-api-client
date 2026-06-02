@@ -39,6 +39,17 @@ class Cluster
     }
 
     /**
+     * Get all available OS versions (across every cluster)
+     *
+     * @throws ApiException
+     * @throws GuzzleException
+     */
+    public function getOsListAll(): array
+    {
+        return $this->client->get("{$this->basePath}/os-list");
+    }
+
+    /**
      * Get available OS versions for a cluster
      *
      * @throws ApiException
@@ -46,7 +57,7 @@ class Cluster
      */
     public function getOsList(string $clusterSlug): array
     {
-        return $this->client->get("{$this->basePath}/clusters/{$clusterSlug}/os-list");
+        return $this->client->get("{$this->basePath}/cluster/{$clusterSlug}/os-list");
     }
 
     /**
@@ -57,7 +68,7 @@ class Cluster
      */
     public function getPrices(string $clusterSlug): array
     {
-        return $this->client->get("{$this->basePath}/clusters/{$clusterSlug}/prices");
+        return $this->client->get("{$this->basePath}/cluster/{$clusterSlug}/pricing");
     }
 
     /**
@@ -68,6 +79,6 @@ class Cluster
      */
     public function calculatePrice(string $clusterSlug, array $config): array
     {
-        return $this->client->post("{$this->basePath}/clusters/{$clusterSlug}/price-calc", $config);
+        return $this->client->post("{$this->basePath}/cluster/{$clusterSlug}/calculator", $config);
     }
 }

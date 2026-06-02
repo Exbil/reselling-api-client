@@ -85,7 +85,7 @@ class RootServer
      */
     public function update(int $vmId, array $config): array
     {
-        return $this->client->put("{$this->basePath}/{$vmId}", $config);
+        return $this->client->post("{$this->basePath}/{$vmId}/resize", $config);
     }
 
     /**
@@ -96,7 +96,7 @@ class RootServer
      */
     public function delete(int $vmId): array
     {
-        return $this->client->delete("{$this->basePath}/{$vmId}");
+        return $this->client->post("{$this->basePath}/{$vmId}/delete");
     }
 
     /**
@@ -147,7 +147,7 @@ class RootServer
      */
     public function getStats(int $vmId): array
     {
-        return $this->client->get("{$this->basePath}/{$vmId}/stats");
+        return $this->client->get("{$this->basePath}/{$vmId}/live-stats");
     }
 
     /**

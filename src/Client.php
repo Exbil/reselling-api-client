@@ -3,6 +3,7 @@
 namespace Exbil\ResellingAPI;
 
 use Exbil\ResellingAPI\Accounting\Accounting;
+use Exbil\ResellingAPI\CloudServices\CloudServices;
 use Exbil\ResellingAPI\Domain\Domain;
 use Exbil\ResellingAPI\Exceptions\ApiException;
 use Exbil\ResellingAPI\Exceptions\AuthenticationException;
@@ -28,6 +29,7 @@ class Client
     private ?RootServer $rootServerHandler = null;
     private ?VPN $vpnHandler = null;
     private ?GameServer $gameServerHandler = null;
+    private ?CloudServices $cloudServicesHandler = null;
     private ?Mailcow $mailcowHandler = null;
 
     public function __construct(string $apiKey, string $baseUrl = 'https://reselling-portal.de/api/', ?GuzzleClient $httpClient = null)
@@ -206,6 +208,14 @@ class Client
     public function gameServer(): GameServer
     {
         return $this->gameServerHandler ??= new GameServer($this);
+    }
+
+    /**
+     * Cloud Services API - Containers, Files, Backups, Power, Console
+     */
+    public function cloudServices(): CloudServices
+    {
+        return $this->cloudServicesHandler ??= new CloudServices($this);
     }
 
     /**
