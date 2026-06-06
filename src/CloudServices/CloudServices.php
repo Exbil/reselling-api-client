@@ -77,12 +77,26 @@ class CloudServices
     /**
      * Reinstall a cloud service.
      *
+     * @param string $uuid       Service UUID.
+     * @param array  $options    Optional overrides forwarded to the daemon:
+     *                            - cloudservice (string): switch to a new
+     *                              template at the same time.
+     *                            - environment (array): override env vars
+     *                              for the (possibly new) template.
+     *                            - auto_start (bool): when true, the daemon
+     *                              runs startServer() the moment the wipe
+     *                              + image pull completes, so the customer
+     *                              sees the entrypoint's seed phase in
+     *                              the live console without having to
+     *                              click Start a second time.
+     *                              Recommended for customer-facing flows.
+     *
      * @throws ApiException
      * @throws GuzzleException
      */
-    public function reinstall(string $uuid): array
+    public function reinstall(string $uuid, array $options = []): array
     {
-        return $this->client->post("{$this->basePath}/{$uuid}/reinstall");
+        return $this->client->post("{$this->basePath}/{$uuid}/reinstall", $options);
     }
 
     /**
