@@ -13,6 +13,7 @@ class CloudServices
     private ?Power $powerHandler = null;
     private ?Files $filesHandler = null;
     private ?Backups $backupsHandler = null;
+    private ?Network $networkHandler = null;
 
     public function __construct(Client $client)
     {
@@ -132,5 +133,15 @@ class CloudServices
     public function backups(): Backups
     {
         return $this->backupsHandler ??= new Backups($this->client);
+    }
+
+    /**
+     * Network — per-server IPv6 lifecycle (status + order/list/release).
+     * Up to four addresses per server out of the operator's routed /64
+     * (or wider) prefix.
+     */
+    public function network(): Network
+    {
+        return $this->networkHandler ??= new Network($this->client);
     }
 }

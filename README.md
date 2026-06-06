@@ -599,6 +599,30 @@ $client->cloudServices()->backups()->create('a1b2c3d4-...', 'pre-update');
 $client->cloudServices()->backups()->restore('a1b2c3d4-...', 'backup-uuid');
 ```
 
+#### Network (`$client->cloudServices()->network()`)
+
+Per-server IPv6 lifecycle. Up to four addresses out of the operator's
+routed prefix.
+
+| Method | Description |
+|--------|-------------|
+| `status(string $uuid)` | Node prefix + upstream healthcheck snapshot |
+| `listIpv6(string $uuid)` | Addresses bound to the server (primary first) |
+| `orderIpv6(string $uuid)` | Allocate one more (HTTP 503 if transit down) |
+| `releaseIpv6(string $uuid, int $addressId)` | Release one by daemon-side id |
+
+```php
+$status = $client->cloudServices()->network()->status('a1b2c3d4-...');
+if ($status['enabled'] && ($status['healthcheck']['healthy'] ?? false)) {
+    $addr = $client->cloudServices()->network()->orderIpv6('a1b2c3d4-...');
+    echo $addr['data']['ipv6'];     // e.g. 2a0e:97c0:440:105::abcd
+}
+```
+
+A 503 response carries a `detail.last_checked_at` + `detail.last_error`
+explaining why the upstream is down; surface that to the operator
+rather than retrying blindly.
+
 ---
 
 ## Error Handling

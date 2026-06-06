@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Cloud Services → Network**: per-server IPv6 lifecycle.
+  `network()->status($uuid)` reports whether the node operator's
+  prefix is configured and whether upstream transit is healthy;
+  `network()->listIpv6($uuid)`, `orderIpv6($uuid)` and
+  `releaseIpv6($uuid, $id)` manage up to four addresses per server out
+  of the routed prefix. The daemon returns a structured
+  `ipv6_transit_down` body on HTTP 503 — surface
+  `detail.last_checked_at` + `detail.last_error` rather than retrying
+  blindly.
+
 ## [1.0.0] - 2026-06-02
 
 Initial public release of the Exbil Reselling Portal API client.
