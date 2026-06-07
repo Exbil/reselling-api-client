@@ -8,6 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Cloud Services → allocations($uuid)**: every port the
+  server has, zipped 1:1 with the cloud-service `port_schema` so
+  the response already carries role + protocol + description per
+  entry. Use this instead of `get($uuid)` to render a Network view
+  for multi-port services (TS3 voice + query + filetransfer, Source
+  engines with GoTV, FiveM with txAdmin, ...).
 - **Cloud Services → consoleToken($uuid)**: short-lived scoped
   token + ready-to-use wss:// URLs for the live console + stats
   streams. Pass the returned `subprotocols` array as the

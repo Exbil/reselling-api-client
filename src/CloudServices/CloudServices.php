@@ -154,6 +154,47 @@ class CloudServices
         return $this->client->post("{$this->basePath}/{$uuid}/console-token");
     }
 
+    /**
+     * List every port allocation assigned to the server, zipped 1:1 by
+     * index with the cloud-service's `port_schema` so each entry
+     * already carries its role + protocol + description alongside the
+     * raw host:port.
+     *
+     * Use this instead of `get($uuid)` when you need to render a
+     * "Network" view — YaTQA / SourceTV / ServerQuery bots expect a
+     * specific role's port (`query`, `gotv`, `txadmin`, ...) and the
+     * single `allocation_port` on the service record only ever shows
+     * the first allocation. For TeamSpeak 3 the response includes the
+     * voice (UDP) and the query + filetransfer (TCP) ports, each with
+     * the description from the template's port_schema and the vendor
+     * default (e.g. TS3 query defaults to 10011).
+     *
+     * Response shape:
+     *
+     *   {
+     *     "data": [
+     *       {"role":"voice", "protocol":"udp",
+     *        "description":"TeamSpeak 3 voice (clients connect here)",
+     *        "ip":"94.249.215.109", "port":25500, "default":9987},
+     *       {"role":"query", "protocol":"tcp", "description":"...",
+     *        "ip":"94.249.215.109", "port":25501, "default":10011},
+     *       ...
+     *     ],
+     *     "service": {"slug":"teamspeak-arm64", "name":"..."}
+     *   }
+     *
+     * Allocations beyond the schema length are returned with
+     * role="extra"; schema entries with no matching allocation are
+     * omitted so callers know to scale resources up.
+     *
+     * @throws ApiException
+     * @throws GuzzleException
+     */
+    public function allocations(string $uuid): array
+    {
+        return $this->client->get("{$this->basePath}/{$uuid}/allocations");
+    }
+
     // ==================== SUB-RESOURCES ====================
 
     /**
