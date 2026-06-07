@@ -123,6 +123,37 @@ class CloudServices
         ]);
     }
 
+    /**
+     * Issue a short-lived scoped token + ready-to-use wss:// URLs for the
+     * live console + stats WebSocket streams.
+     *
+     * Returns:
+     *   {
+     *     "token":               "cst_...",
+     *     "subprotocols":        ["cst", "cst_..."],
+     *     "websocket_url":       "wss://<node>:443/api/v1/servers/<uuid>/console",
+     *     "stats_websocket_url": "wss://<node>:443/api/v1/servers/<uuid>/stats",
+     *     "expires_in_sec":      300
+     *   }
+     *
+     * Pass the array under the `subprotocols` key as the WebSocket
+     * client's `Sec-WebSocket-Protocol` header — that's how the daemon
+     * authenticates the connection. URLs go in proxy logs and browser
+     * history, the subprotocol header doesn't, so the token never lands
+     * anywhere it shouldn't. Token TTL is ~5 min; re-call this endpoint
+     * to keep a long-running session alive.
+     *
+     * Browser example (vanilla JS):
+     *   const ws = new WebSocket(data.websocket_url, data.subprotocols);
+     *
+     * @throws ApiException
+     * @throws GuzzleException
+     */
+    public function consoleToken(string $uuid): array
+    {
+        return $this->client->post("{$this->basePath}/{$uuid}/console-token");
+    }
+
     // ==================== SUB-RESOURCES ====================
 
     /**

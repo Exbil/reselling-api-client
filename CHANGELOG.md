@@ -8,6 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Cloud Services → consoleToken($uuid)**: short-lived scoped
+  token + ready-to-use wss:// URLs for the live console + stats
+  streams. Pass the returned `subprotocols` array as the
+  `Sec-WebSocket-Protocol` header on the WebSocket connection — the
+  daemon authenticates from there, so the token never lands in proxy
+  logs or browser history. Token TTL ~5 min; re-call to renew.
 - **Cloud Services → Network**: per-server IPv6 lifecycle.
   `network()->status($uuid)` reports whether the node operator's
   prefix is configured and whether upstream transit is healthy;
