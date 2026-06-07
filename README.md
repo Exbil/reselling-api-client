@@ -630,17 +630,52 @@ $client->cloudServices()->files()->write('a1b2c3d4-...', 'server.properties', "m
 
 #### Backups (`$client->cloudServices()->backups()`)
 
+Each service has a slot quota (default 3) and a size cap (default
+100 GB). Archives are encrypted at rest with AES-256-GCM and tagged
+with the team that created or uploaded them — restores across team
+boundaries are refused with 403 unless the caller passes
+`force => true`.
+
 | Method | Description |
 |--------|-------------|
-| `getAll(string $uuid)` | All backups |
-| `create(string $uuid, ?string $name = null, array $ignoredFiles = [])` | Create a backup |
-| `delete(string $uuid, string $backupId)` | Delete a backup |
-| `restore(string $uuid, string $backupId)` | Restore a backup |
-| `download(string $uuid, string $backupId)` | Get a backup download URL |
+| `getAll(string $uuid)` | All backups for a service (with `team_id`, `cloudservice_id`, `origin`, `is_locked`) |
+| `create(string $uuid, ?string $name = null, array $ignoredFiles = [])` | Create a backup of the current volume |
+| `upload(string $uuid, string $filePath)` | Upload a `.tar.gz` archive previously downloaded from this platform |
+| `delete(string $uuid, string $backupId)` | Delete a backup (sends a deletion-certificate mail to the owner) |
+| `restore(string $uuid, string $backupId, array $options = [])` | Restore a backup — stop, extract, chown, auto-start |
+| `toggleLock(string $uuid, string $backupId)` | Toggle the lock flag (locked backups skip retention sweeps) |
+| `download(string $uuid, string $backupId, string $targetPath)` | Stream the encrypted archive to a local path |
 
 ```php
+// Snapshot
 $client->cloudServices()->backups()->create('a1b2c3d4-...', 'pre-update');
-$client->cloudServices()->backups()->restore('a1b2c3d4-...', 'backup-uuid');
+
+// Download locally (encrypted .tar.gz — keep as-is for re-upload)
+$client->cloudServices()->backups()->download(
+    'a1b2c3d4-...',
+    'backup-uuid-here',
+    '/tmp/my-backup.tar.gz',
+);
+
+// Re-upload a backup you saved earlier
+$client->cloudServices()->backups()->upload(
+    'a1b2c3d4-...',
+    '/tmp/my-backup.tar.gz',
+);
+
+// Restore. switch_template defaults to true — when the archive was
+// taken on a different template (TS3 backup on a TS6 server) the
+// daemon flips the server's cloudservice_id + docker_image to match
+// the backup before extracting. Pass force=true for operator
+// recovery (skips both the cross-team and cross-template guards).
+$client->cloudServices()->backups()->restore(
+    'a1b2c3d4-...',
+    'backup-uuid-here',
+    ['switch_template' => true],
+);
+
+// Lock an archive against the retention sweep
+$client->cloudServices()->backups()->toggleLock('a1b2c3d4-...', 'backup-uuid-here');
 ```
 
 #### Network (`$client->cloudServices()->network()`)
