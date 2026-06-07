@@ -532,12 +532,17 @@ $client->mailcow()->domainAdmin()->update('example.com', 'admin', [
 
 ### Cloud Services
 
-Container based services. Services and backups are addressed by their UUID.
+Container based services — game servers (Minecraft, TeamSpeak, CS2,
+Rust, Palworld, …), databases (MySQL, MariaDB, PostgreSQL, MongoDB,
+Redis, …), web stacks (Caddy, Apache+PHP, Node.js, Python, Bun, …),
+discord bots, and ~250 other templates. Services and backups are
+addressed by their UUID.
 
 #### Main Methods
 
 | Method | Description |
 |--------|-------------|
+| `templates()` | Order catalogue — every active template + node bindings + field_schema |
 | `getAll(array $filters = [])` | All cloud services (filters: status, per_page, team_id) |
 | `get(string $uuid)` | Service details incl. live status |
 | `create(array $config)` | Create a service (node_id, template_slug, name, memory_limit, disk_limit, cpu_limit, …) |
@@ -546,11 +551,46 @@ Container based services. Services and backups are addressed by their UUID.
 | `status(string $uuid)` | Live resource usage / status |
 | `sendCommand(string $uuid, string $command)` | Send a console command (one-shot REST) |
 | `consoleToken(string $uuid)` | Issue a scoped token + wss:// URLs for the live console + stats streams |
+| `allocations(string $uuid)` | List every port allocation with role + protocol + description |
 
 ```php
+// === ORDER FLOW ============================================
+
+// 1) Pull the order catalogue
+$catalog = $client->cloudServices()->templates();
+$mcPaper = collect($catalog['data']['templates'])
+    ->firstWhere('slug', 'minecraft-paper');
+$node    = $catalog['data']['nodes'][0];
+
+// 2) Place the order
+$service = $client->cloudServices()->create([
+    'node_id'       => $node['id'],
+    'template_slug' => $mcPaper['slug'],
+    'name'          => 'My Survival World',
+    'memory_limit'  => 4096,                    // MB
+    'disk_limit'    => 10240,                   // MB
+    'cpu_limit'     => 200,                     // % of one core
+    'environment'   => [                        // override env defaults
+        'MC_VERSION'    => '1.21.11',
+        'RCON_ENABLED'  => 'true',
+        'RCON_PASSWORD' => bin2hex(random_bytes(8)),
+    ],
+]);
+
+// 3) Watch the install land
+$uuid = $service['data']['uuid'];
+while (true) {
+    $s = $client->cloudServices()->get($uuid)['data'];
+    if (in_array($s['status'], ['running', 'install_failed', 'offline'])) break;
+    sleep(3);
+}
+
+// === MANAGEMENT ============================================
+
 $services = $client->cloudServices()->getAll(['status' => 'running']);
 $service  = $client->cloudServices()->get('a1b2c3d4-...');
 $client->cloudServices()->sendCommand('a1b2c3d4-...', 'say hello');
+$client->cloudServices()->allocations('a1b2c3d4-...');
 ```
 
 **`reinstall($uuid, $options)` options array**
@@ -701,6 +741,69 @@ if ($status['enabled'] && ($status['healthcheck']['healthy'] ?? false)) {
 A 503 response carries a `detail.last_checked_at` + `detail.last_error`
 explaining why the upstream is down; surface that to the operator
 rather than retrying blindly.
+
+#### Container Registries (`$client->cloudServices()->registries()`)
+
+Customer-owned private Docker registries hosted on the same nodes.
+Each registry gets a `<namespace>.<node-domain>` URL and a generated
+admin password the customer uses to `docker login` + push images.
+Packaged (fixed slug → quotas) or custom (storage / repo / robot
+sliders).
+
+| Method | Description |
+|--------|-------------|
+| `getAll()` | Calling team's registries |
+| `get(string $uuid)` | Registry details + admin creds (MANAGE-only) |
+| `create(array $config)` | Order a new registry (package or custom mode) |
+| `delete(string $uuid)` | Tear down — secure-wipes blobs before releasing the slot |
+| `packages()` | Catalogue of available packages with prices |
+| `calculatePrice(array $payload)` | Live price preview for the order form |
+| `checkNamespace(string $namespace)` | Returns `{available: bool}` for the typed namespace |
+
+```php
+// === ORDER FLOW ============================================
+
+// 1) Show catalogue
+$packages = $client->cloudServices()->registries()->packages();
+
+// 2) Price-preview
+$preview = $client->cloudServices()->registries()->calculatePrice([
+    'mode'         => 'package',
+    'package_slug' => 'small',
+]);
+
+// 3) Reserve the namespace (live as customer types)
+$check = $client->cloudServices()->registries()->checkNamespace('myco-prod');
+if (!$check['data']['available']) {
+    throw new RuntimeException('Namespace taken');
+}
+
+// 4) Order
+$registry = $client->cloudServices()->registries()->create([
+    'mode'         => 'package',
+    'package_slug' => 'small',
+    'namespace'    => 'myco-prod',
+    'auto_upgrade' => true,
+]);
+
+// 5) Customer pushes images
+//    docker login myco-prod.registry.example.com -u admin -p <admin_password>
+//    docker push myco-prod.registry.example.com/myapp:v1.0
+```
+
+`packages()` returns slug, included storage / repos / robots, hourly
+cents and a marketing blurb so the order form can render the cards
+without separate copy decks. Custom mode bypasses the package step:
+
+```php
+$client->cloudServices()->registries()->create([
+    'mode'        => 'custom',
+    'storage_gb'  => 50,
+    'repo_limit'  => 20,
+    'robot_limit' => 10,
+    'namespace'   => 'myco-staging',
+]);
+```
 
 ---
 

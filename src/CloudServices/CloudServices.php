@@ -14,6 +14,7 @@ class CloudServices
     private ?Files $filesHandler = null;
     private ?Backups $backupsHandler = null;
     private ?Network $networkHandler = null;
+    private ?Registries $registriesHandler = null;
 
     public function __construct(Client $client)
     {
@@ -44,6 +45,48 @@ class CloudServices
     public function get(string $uuid): array
     {
         return $this->client->get("{$this->basePath}/{$uuid}");
+    }
+
+    /**
+     * Catalogue endpoint — every active service template a customer
+     * may order, paired with the nodes that have a valid template
+     * binding (region-availability + maintenance-mode checked).
+     *
+     * Use this to render the order form: each entry carries the
+     * full `field_schema` (env knobs the customer can override at
+     * order time, e.g. SERVER_PORT, MC_VERSION, RCON_PASSWORD), the
+     * suggested `environment_defaults`, and the `resource_limits`
+     * minimums the panel enforces (memory / disk / cpu floors).
+     *
+     * Response shape:
+     *   {
+     *     "templates": [
+     *       {
+     *         "slug": "teamspeak6-server",
+     *         "name": "TeamSpeak 6 Server",
+     *         "category": "Application",
+     *         "description": "...",
+     *         "docker_image": "ghcr.io/exbil/teamspeak6-server:latest",
+     *         "environment_defaults": {...},
+     *         "field_schema": [...],
+     *         "resource_limits": {"min": {...}, "max": {...}},
+     *         "node_ids": [1, 2]   ← bind these to the node dropdown
+     *       },
+     *       ...
+     *     ],
+     *     "nodes": [
+     *       {"id": 1, "name": "fra-01", "location_id": 10,
+     *        "maintenance_mode": false},
+     *       ...
+     *     ]
+     *   }
+     *
+     * @throws ApiException
+     * @throws GuzzleException
+     */
+    public function templates(): array
+    {
+        return $this->client->get("{$this->basePath}/templates");
     }
 
     // ==================== SERVICE CREATION & MANAGEMENT ====================
@@ -229,5 +272,16 @@ class CloudServices
     public function network(): Network
     {
         return $this->networkHandler ??= new Network($this->client);
+    }
+
+    /**
+     * Container Registries — order, list, show, delete the private
+     * registries customers can host their own Docker images in. Live
+     * at /products/cloudservices/registries/* with their own pricing
+     * + namespace-check helpers.
+     */
+    public function registries(): Registries
+    {
+        return $this->registriesHandler ??= new Registries($this->client);
     }
 }
