@@ -27,8 +27,12 @@ class Files
      */
     public function list(string $uuid, string $dir = '/'): array
     {
+        // Daemon expects `?dir=` (see ServerHandler in goagent —
+        // anything else returns an empty listing). Earlier SDK
+        // builds sent `?directory=` and the customer-facing file
+        // manager rendered an empty grid for every directory.
         return $this->client->get("{$this->basePath}/{$uuid}/files/list", [
-            'directory' => $dir,
+            'dir' => $dir,
         ]);
     }
 
