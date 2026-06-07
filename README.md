@@ -542,15 +542,59 @@ Container based services. Services and backups are addressed by their UUID.
 | `get(string $uuid)` | Service details incl. live status |
 | `create(array $config)` | Create a service (node_id, template_slug, name, memory_limit, disk_limit, cpu_limit, …) |
 | `delete(string $uuid)` | Delete a service |
-| `reinstall(string $uuid)` | Reinstall a service |
+| `reinstall(string $uuid, array $options = [])` | Reinstall a service — see options below |
 | `status(string $uuid)` | Live resource usage / status |
-| `sendCommand(string $uuid, string $command)` | Send a console command |
+| `sendCommand(string $uuid, string $command)` | Send a console command (one-shot REST) |
+| `consoleToken(string $uuid)` | Issue a scoped token + wss:// URLs for the live console + stats streams |
 
 ```php
 $services = $client->cloudServices()->getAll(['status' => 'running']);
 $service  = $client->cloudServices()->get('a1b2c3d4-...');
 $client->cloudServices()->sendCommand('a1b2c3d4-...', 'say hello');
 ```
+
+**`reinstall($uuid, $options)` options array**
+
+| Key | Type | Description |
+|-----|------|-------------|
+| `auto_start` | `bool` | When `true`, the daemon starts the server the moment the wipe + image pull finishes — the customer sees the entrypoint's seed phase (Downloading vanilla jar..., npm run setup, ...) in the live console without a second click. **Recommended for customer-facing flows.** |
+| `cloudservice` | `string` | Switch to a different service template at the same time (template-switch reinstall). |
+| `environment` | `array` | Override environment variables for the (possibly new) template. |
+
+```php
+$client->cloudServices()->reinstall('a1b2c3d4-...', ['auto_start' => true]);
+```
+
+**`consoleToken($uuid)` — Live WebSocket console + stats**
+
+Use this instead of polling REST `sendCommand()` when you need a live
+console view or want to stream output back to a client. The daemon
+accepts a short-lived (5 min) scoped token via
+`Sec-WebSocket-Protocol`, so the token never lands in URLs / proxy
+logs / browser history.
+
+```php
+$ws = $client->cloudServices()->consoleToken('a1b2c3d4-...');
+// $ws = [
+//   'token'               => 'cst_...',
+//   'subprotocols'        => ['cst', 'cst_...'],
+//   'websocket_url'       => 'wss://node01.example.com:443/api/v1/servers/<uuid>/console',
+//   'stats_websocket_url' => 'wss://node01.example.com:443/api/v1/servers/<uuid>/stats',
+//   'expires_in_sec'      => 300,
+// ]
+```
+
+Browser-side (vanilla JS):
+
+```js
+const ws = new WebSocket(data.websocket_url, data.subprotocols);
+ws.onmessage = e => console.log(e.data);
+ws.send(JSON.stringify({event: 'command', command: 'list'}));
+```
+
+Token TTL is ~5 min; re-call `consoleToken()` before expiry to keep
+a long-running session alive. The same token authenticates BOTH the
+console and the stats WebSocket — connect to whichever URL you need.
 
 #### Power (`$client->cloudServices()->power()`)
 
