@@ -150,6 +150,15 @@ class Client
      * @throws ApiException
      * @throws GuzzleException
      */
+    public function patch(string $endpoint, array $data = []): array
+    {
+        return $this->request('PATCH', $endpoint, ['json' => $data]);
+    }
+
+    /**
+     * @throws ApiException
+     * @throws GuzzleException
+     */
     public function delete(string $endpoint, array $data = []): array
     {
         return $this->request('DELETE', $endpoint, ['json' => $data]);

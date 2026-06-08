@@ -143,6 +143,18 @@ class CloudServices
     }
 
     /**
+     * Update memory/disk/cpu allocation for a running service.
+     *
+     * @param array{memory_limit:int, disk_limit:int, cpu_limit:int} $resources
+     * @throws ApiException
+     * @throws GuzzleException
+     */
+    public function updateResources(string $uuid, array $resources): array
+    {
+        return $this->client->patch("{$this->basePath}/{$uuid}/resources", $resources);
+    }
+
+    /**
      * Get live resource usage / status for a cloud service.
      *
      * @throws ApiException
