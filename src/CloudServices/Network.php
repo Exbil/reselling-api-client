@@ -86,4 +86,39 @@ class Network
     {
         return $this->client->delete("{$this->basePath}/{$uuid}/network/ipv6/{$addressId}");
     }
+
+    /**
+     * Order N IPv6 addresses in one orchestration. Loops {@see orderIpv6}
+     * up to $count times and stops early if any single call fails (the
+     * caller usually wants to surface "ordered X of Y" to the operator
+     * instead of partially silent-failing). Returns the array of
+     * successfully-ordered allocation rows.
+     *
+     * Use this from the order flow when the customer ticks "include
+     * IPv6" + a count on the create form — the daemon's single-shot
+     * /network/ipv6 endpoint is the only primitive available, so the
+     * panel needs to fan it out itself.
+     *
+     * Caps internally at $max so a typo doesn't burn through the entire
+     * /64 prefix. Daemon enforces its own per-server limit (default 4)
+     * and will reject calls past that with HTTP 422.
+     *
+     * @return array<int,array<string,mixed>> Ordered allocation rows.
+     *
+     * @throws ApiException        Wrapped from the daemon's 503/422 response.
+     * @throws GuzzleException
+     */
+    public function orderIpv6Batch(string $uuid, int $count, int $max = 16): array
+    {
+        $count = max(0, min($count, $max));
+        $ordered = [];
+        for ($i = 0; $i < $count; $i++) {
+            $resp = $this->orderIpv6($uuid);
+            // The daemon returns either {data: {...row...}} or {address: ...}
+            // depending on version; keep the raw response and let the caller
+            // pick the shape they want.
+            $ordered[] = $resp;
+        }
+        return $ordered;
+    }
 }
