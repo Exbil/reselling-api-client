@@ -155,6 +155,18 @@ class CloudServices
     }
 
     /**
+     * Update the customer-facing display name. Pass null/empty to clear back
+     * to the product default.
+     *
+     * @throws ApiException
+     * @throws GuzzleException
+     */
+    public function rename(string $uuid, ?string $name): array
+    {
+        return $this->client->patch("{$this->basePath}/{$uuid}/name", ['name' => $name]);
+    }
+
+    /**
      * Get live resource usage / status for a cloud service.
      *
      * @throws ApiException
