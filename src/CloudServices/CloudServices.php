@@ -167,6 +167,23 @@ class CloudServices
     }
 
     /**
+     * Update runtime environment variables (game version, max players, etc.).
+     * Daemon enforces user_editable=true on every key; non-editable keys
+     * cause the upstream to return 422.
+     *
+     * @param array<string, string> $environment
+     * @throws ApiException
+     * @throws GuzzleException
+     */
+    public function updateEnvironment(string $uuid, array $environment, bool $restartAfterSave = true): array
+    {
+        return $this->client->patch("{$this->basePath}/{$uuid}/environment", [
+            'environment'        => $environment,
+            'restart_after_save' => $restartAfterSave,
+        ]);
+    }
+
+    /**
      * Get live resource usage / status for a cloud service.
      *
      * @throws ApiException
