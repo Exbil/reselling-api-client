@@ -1,6 +1,6 @@
 {
     "name": "exbil/reselling-api-client",
-    "description": "Official PHP client for the Exbil Reselling Portal API — Root Server, Cloud Services, Game Server, VPN, Mailcow, Domain and Accounting endpoints.",
+    "description": "Official PHP client for the Exbil Reselling Portal API — Root Server, Cloud Services, Game Server, TeamSpeak, VPN, Mailcow, Domain and Accounting endpoints.",
     "type": "library",
     "minimum-stability": "stable",
     "license": "MIT",
@@ -36,6 +36,7 @@
         "cloudservices",
         "containers",
         "gameserver",
+        "teamspeak",
         "vpn",
         "mailcow",
         "domain",

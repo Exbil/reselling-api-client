@@ -13,6 +13,7 @@ use Exbil\ResellingAPI\Exceptions\ValidationException;
 use Exbil\ResellingAPI\GameServer\GameServer;
 use Exbil\ResellingAPI\Mailcow\Mailcow;
 use Exbil\ResellingAPI\RootServer\RootServer;
+use Exbil\ResellingAPI\TeamSpeak\TeamSpeak;
 use Exbil\ResellingAPI\VPN\VPN;
 use GuzzleHttp\Client as GuzzleClient;
 use GuzzleHttp\Exception\GuzzleException;
@@ -31,6 +32,7 @@ class Client
     private ?GameServer $gameServerHandler = null;
     private ?CloudServices $cloudServicesHandler = null;
     private ?Mailcow $mailcowHandler = null;
+    private ?TeamSpeak $teamSpeakHandler = null;
 
     public function __construct(string $apiKey, string $baseUrl = 'https://reselling-portal.de/api/', ?GuzzleClient $httpClient = null)
     {
@@ -233,5 +235,13 @@ class Client
     public function mailcow(): Mailcow
     {
         return $this->mailcowHandler ??= new Mailcow($this);
+    }
+
+    /**
+     * TeamSpeak API - Servers, Channels, Clients, Security, Backups
+     */
+    public function teamSpeak(): TeamSpeak
+    {
+        return $this->teamSpeakHandler ??= new TeamSpeak($this);
     }
 }

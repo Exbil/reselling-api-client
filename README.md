@@ -807,6 +807,76 @@ $client->cloudServices()->registries()->create([
 
 ---
 
+### TeamSpeak
+
+Order and manage TeamSpeak servers — power, slots, settings, channels,
+connected clients, privilege tokens, bans and snapshot backups.
+
+```php
+// Pricing + available locations (datacenters with free capacity)
+$pricing = $client->teamSpeak()->getPricing();
+
+// Order a server (optionally in a specific datacenter)
+$server = $client->teamSpeak()->order('My Server', 64);
+$server = $client->teamSpeak()->order('My Server', 64, datacenterId: 2);
+
+// List / show / delete
+$servers = $client->teamSpeak()->getAll();
+$server  = $client->teamSpeak()->get(1);
+$client->teamSpeak()->delete(1);
+
+// Live view (info + channels + connected clients) and advanced data
+$view   = $client->teamSpeak()->view(1);
+$extras = $client->teamSpeak()->extras(1); // groups, tokens, bans, complaints, log
+
+// Power
+$client->teamSpeak()->start(1);
+$client->teamSpeak()->stop(1);
+
+// Settings
+$client->teamSpeak()->resize(1, 128); // subject to the host's free capacity
+$client->teamSpeak()->updateSettings(1, ['name' => 'New name', 'password' => 'secret']);
+$client->teamSpeak()->broadcast(1, 'Maintenance in 5 minutes');
+```
+
+#### Channels (`$client->teamSpeak()->channels()`)
+
+```php
+$client->teamSpeak()->channels()->create(1, 'Lobby');
+$client->teamSpeak()->channels()->create(1, 'Team A', parentId: 5); // sub-channel
+$client->teamSpeak()->channels()->delete(1, 5);
+```
+
+#### Clients (`$client->teamSpeak()->clients()`)
+
+```php
+$client->teamSpeak()->clients()->details(1, 12);
+$client->teamSpeak()->clients()->move(1, 12, 5);
+$client->teamSpeak()->clients()->kick(1, 12, 'Be nice');
+$client->teamSpeak()->clients()->ban(1, 12, seconds: 3600, reason: 'Spam');
+```
+
+#### Security (`$client->teamSpeak()->security()`)
+
+```php
+$client->teamSpeak()->security()->createToken(1, serverGroupId: 6, description: 'Admin invite');
+$client->teamSpeak()->security()->deleteToken(1, 'the-token-string');
+$client->teamSpeak()->security()->addBan(1, ['ip' => '1.2.3.4', 'reason' => 'abuse']);
+$client->teamSpeak()->security()->removeBan(1, 42);
+```
+
+#### Backups (`$client->teamSpeak()->backups()`)
+
+```php
+// Download a base64 snapshot (returned under data.snapshot)
+$snapshot = $client->teamSpeak()->backups()->download(1)['data']['snapshot'];
+
+// Restore from a snapshot (overwrites channels, groups and permissions)
+$client->teamSpeak()->backups()->restore(1, $snapshot);
+```
+
+---
+
 ## Error Handling
 
 ```php
