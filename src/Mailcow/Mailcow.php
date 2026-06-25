@@ -79,6 +79,17 @@ class Mailcow
     }
 
     /**
+     * List all Mailcow domains.
+     *
+     * @throws ApiException
+     * @throws GuzzleException
+     */
+    public function getAll(): array
+    {
+        return $this->client->get("{$this->basePath}/domains");
+    }
+
+    /**
      * Create one or multiple Mailcow domains
      *
      * @param string $nodeOrDatacenter Node ID/slug or datacenter ID/slug

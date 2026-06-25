@@ -31,6 +31,19 @@ class Alias
     }
 
     /**
+     * List all aliases of a domain.
+     *
+     * @param string $domain Domain name
+     *
+     * @throws ApiException
+     * @throws GuzzleException
+     */
+    public function getAll(string $domain): array
+    {
+        return $this->client->get("{$this->basePath}/{$domain}/aliases");
+    }
+
+    /**
      * Create an alias
      *
      * @param string $domain Domain name
