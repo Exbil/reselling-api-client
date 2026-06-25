@@ -41,11 +41,13 @@ class Location
     /**
      * Get clusters for a specific datacenter
      *
+     * @param int|string $datacenter Datacenter id or slug
+     *
      * @throws ApiException
      * @throws GuzzleException
      */
-    public function getClusters(string $datacenterSlug): array
+    public function getClusters(int|string $datacenter): array
     {
-        return $this->client->get("{$this->basePath}/locations/{$datacenterSlug}/clusters");
+        return $this->client->get("{$this->basePath}/locations/{$datacenter}/clusters");
     }
 }

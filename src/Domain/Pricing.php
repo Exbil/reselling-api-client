@@ -9,6 +9,7 @@ use GuzzleHttp\Exception\GuzzleException;
 class Pricing
 {
     private Client $client;
+    private string $basePath = 'v1/products/domains';
 
     public function __construct(Client $client)
     {
@@ -23,7 +24,7 @@ class Pricing
      */
     public function getAll(): array
     {
-        return $this->client->get('v1/domains/prices');
+        return $this->client->get("{$this->basePath}/prices");
     }
 
     /**
@@ -34,7 +35,7 @@ class Pricing
      */
     public function getTlds(): array
     {
-        return $this->client->get('v1/domains/prices/tlds');
+        return $this->client->get("{$this->basePath}/prices/tlds");
     }
 
     /**
@@ -47,6 +48,6 @@ class Pricing
      */
     public function getByTld(string $tld): array
     {
-        return $this->client->get("v1/domains/prices/{$tld}");
+        return $this->client->get("{$this->basePath}/prices/{$tld}");
     }
 }

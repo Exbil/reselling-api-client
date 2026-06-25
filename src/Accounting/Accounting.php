@@ -68,17 +68,6 @@ class Accounting
     }
 
     /**
-     * Get all invoices
-     *
-     * @throws ApiException
-     * @throws GuzzleException
-     */
-    public function getInvoices(): array
-    {
-        return $this->client->get("{$this->basePath}/invoices");
-    }
-
-    /**
      * Get a specific invoice by ID
      *
      * @throws ApiException

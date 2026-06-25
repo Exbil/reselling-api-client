@@ -19,44 +19,56 @@ class Power
     /**
      * Start server
      *
+     * @param int $server Server ID
+     * @param array $data Optional body (e.g. ['context' => ['boot' => true]])
+     *
      * @throws ApiException
      * @throws GuzzleException
      */
-    public function start(int $vmId): array
+    public function start(int $server, array $data = []): array
     {
-        return $this->client->post("{$this->basePath}/{$vmId}/start");
+        return $this->client->post("{$this->basePath}/{$server}/start", $data);
     }
 
     /**
      * Stop server (graceful shutdown)
      *
+     * @param int $server Server ID
+     * @param array $data Optional body (e.g. ['context' => ['boot' => true]])
+     *
      * @throws ApiException
      * @throws GuzzleException
      */
-    public function stop(int $vmId): array
+    public function stop(int $server, array $data = []): array
     {
-        return $this->client->post("{$this->basePath}/{$vmId}/stop");
+        return $this->client->post("{$this->basePath}/{$server}/stop", $data);
     }
 
     /**
      * Restart server
      *
+     * @param int $server Server ID
+     * @param array $data Optional body (e.g. ['context' => ['boot' => true]])
+     *
      * @throws ApiException
      * @throws GuzzleException
      */
-    public function reboot(int $vmId): array
+    public function reboot(int $server, array $data = []): array
     {
-        return $this->client->post("{$this->basePath}/{$vmId}/restart");
+        return $this->client->post("{$this->basePath}/{$server}/restart", $data);
     }
 
     /**
      * Kill server (force stop / power off)
      *
+     * @param int $server Server ID
+     * @param array $data Optional body (e.g. ['context' => ['boot' => true]])
+     *
      * @throws ApiException
      * @throws GuzzleException
      */
-    public function forceStop(int $vmId): array
+    public function forceStop(int $server, array $data = []): array
     {
-        return $this->client->post("{$this->basePath}/{$vmId}/kill");
+        return $this->client->post("{$this->basePath}/{$server}/kill", $data);
     }
 }

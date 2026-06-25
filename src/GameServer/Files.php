@@ -6,6 +6,7 @@ use Exbil\ResellingAPI\Client;
 use Exbil\ResellingAPI\Exceptions\ApiException;
 use GuzzleHttp\Exception\GuzzleException;
 
+// NOTE: not part of the current Reselling Portal API (no /products/gameserver routes). Kept for backwards compatibility — verify before use.
 class Files
 {
     private Client $client;

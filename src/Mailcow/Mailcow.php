@@ -24,35 +24,23 @@ class Mailcow
     /**
      * Get all active Mailcow nodes
      *
-     * @param string|null $datacenter Optional datacenter slug filter
-     *
      * @throws ApiException
      * @throws GuzzleException
      */
-    public function getNodes(?string $datacenter = null): array
+    public function getNodes(): array
     {
-        $query = [];
-        if ($datacenter !== null) {
-            $query['datacenter'] = $datacenter;
-        }
-        return $this->client->get("{$this->basePath}/nodes", $query);
+        return $this->client->get("{$this->basePath}/nodes");
     }
 
     /**
      * Get load balancer statistics for nodes
      *
-     * @param string|null $datacenter Optional datacenter slug filter
-     *
      * @throws ApiException
      * @throws GuzzleException
      */
-    public function getLoadBalancerStats(?string $datacenter = null): array
+    public function getLoadBalancerStats(): array
     {
-        $query = [];
-        if ($datacenter !== null) {
-            $query['datacenter'] = $datacenter;
-        }
-        return $this->client->get("{$this->basePath}/load-balancer/stats", $query);
+        return $this->client->get("{$this->basePath}/load-balancer/stats");
     }
 
     /**
@@ -78,23 +66,6 @@ class Mailcow
     // ==================== DOMAIN MANAGEMENT ====================
 
     /**
-     * Get all domains or a specific domain
-     *
-     * @param string|int|null $id Domain name or ID (optional)
-     *
-     * @throws ApiException
-     * @throws GuzzleException
-     */
-    public function getAll(string|int|null $id = null): array
-    {
-        $path = "{$this->basePath}/domains";
-        if ($id !== null) {
-            $path .= "/{$id}";
-        }
-        return $this->client->get($path);
-    }
-
-    /**
      * Get a specific domain
      *
      * @param string|int $id Domain name or ID
@@ -113,12 +84,15 @@ class Mailcow
      * @param string $nodeOrDatacenter Node ID/slug or datacenter ID/slug
      * @param array $config Domain configuration:
      *   - domain: string (single domain) OR domains: array (multiple)
+     *   - datacenter_id: int
+     *   - mailcow_node_id: int
      *   - mailboxes: int
      *   - aliases: int
-     *   - quota_mb: int
-     *   - defquota_mb: int (default quota per mailbox)
-     *   - maxquota_mb: int (max quota per mailbox)
+     *   - quota_mb: int / quota: int
+     *   - defquota_mb: int / defquota: int (default quota per mailbox)
+     *   - maxquota_mb: int / maxquota: int (max quota per mailbox)
      *   - backupmx: int (0 or 1)
+     *   - with_admin: bool
      *   - admin_username: string
      *   - admin_password: string
      *   - permissions: array

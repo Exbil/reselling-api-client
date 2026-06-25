@@ -17,24 +17,6 @@ class Alias
     }
 
     /**
-     * Get aliases for a domain
-     *
-     * @param string $domain Domain name
-     * @param int|null $aliasId Optional alias ID
-     *
-     * @throws ApiException
-     * @throws GuzzleException
-     */
-    public function getAll(string $domain, ?int $aliasId = null): array
-    {
-        $path = "{$this->basePath}/{$domain}/aliases";
-        if ($aliasId !== null) {
-            $path .= "/{$aliasId}";
-        }
-        return $this->client->get($path);
-    }
-
-    /**
      * Get a specific alias
      *
      * @param string $domain Domain name
@@ -62,7 +44,7 @@ class Alias
     {
         return $this->client->post("{$this->basePath}/{$domain}/aliases", [
             'address' => $address,
-            'goto' => $goto,
+            'goto' => array_values($goto),
         ]);
     }
 
@@ -81,7 +63,7 @@ class Alias
     {
         $data = [
             'address' => $address,
-            'goto' => $goto,
+            'goto' => array_values($goto),
         ];
         if ($active !== null) {
             $data['active'] = $active;

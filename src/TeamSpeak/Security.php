@@ -16,6 +16,19 @@ class Security
         $this->client = $client;
     }
 
+    // ==================== TOKENS ====================
+
+    /**
+     * List all privilege keys (tokens) of the server.
+     *
+     * @throws ApiException
+     * @throws GuzzleException
+     */
+    public function getTokens(int $id): array
+    {
+        return $this->client->get("{$this->basePath}/servers/{$id}/tokens");
+    }
+
     /**
      * Create a privilege key (token) for a server group.
      *
@@ -31,16 +44,57 @@ class Security
     }
 
     /**
-     * Delete a privilege key (token).
+     * Create a privilege key (token) via the dedicated endpoint.
      *
      * @throws ApiException
      * @throws GuzzleException
      */
-    public function deleteToken(int $id, string $token): array
+    public function createTokenDetailed(int $id, int $type, int $groupId, string $description = ''): array
     {
-        return $this->client->delete("{$this->basePath}/servers/{$id}/tokens", [
+        return $this->client->post("{$this->basePath}/servers/{$id}/tokens/create", [
+            'type' => $type,
+            'group_id' => $groupId,
+            'description' => $description,
+        ]);
+    }
+
+    /**
+     * Delete a privilege key (token).
+     *
+     * @param array $data Optional payload (e.g. ['token' => '...']).
+     *
+     * @throws ApiException
+     * @throws GuzzleException
+     */
+    public function deleteToken(int $id, array $data = []): array
+    {
+        return $this->client->delete("{$this->basePath}/servers/{$id}/tokens", $data);
+    }
+
+    /**
+     * Delete a privilege key (token) via the POST endpoint.
+     *
+     * @throws ApiException
+     * @throws GuzzleException
+     */
+    public function deleteTokenPost(int $id, string $token): array
+    {
+        return $this->client->post("{$this->basePath}/servers/{$id}/tokens/delete", [
             'token' => $token,
         ]);
+    }
+
+    // ==================== BANS ====================
+
+    /**
+     * List all ban rules of the server.
+     *
+     * @throws ApiException
+     * @throws GuzzleException
+     */
+    public function getBans(int $id): array
+    {
+        return $this->client->get("{$this->basePath}/servers/{$id}/bans");
     }
 
     /**
@@ -57,15 +111,50 @@ class Security
     }
 
     /**
-     * Remove a ban by its ban id.
+     * Create a ban rule via the dedicated endpoint.
+     *
+     * @param array{ip?:string,name?:string,uid?:string,duration?:int,reason?:string} $rule
      *
      * @throws ApiException
      * @throws GuzzleException
      */
-    public function removeBan(int $id, int $banId): array
+    public function createBan(int $id, array $rule): array
     {
-        return $this->client->delete("{$this->basePath}/servers/{$id}/bans", [
-            'banid' => $banId,
-        ]);
+        return $this->client->post("{$this->basePath}/servers/{$id}/bans/create", $rule);
+    }
+
+    /**
+     * Remove a ban by its ban id (DELETE endpoint).
+     *
+     * @param array $data Optional payload (e.g. ['banid' => 1]).
+     *
+     * @throws ApiException
+     * @throws GuzzleException
+     */
+    public function removeBan(int $id, array $data = []): array
+    {
+        return $this->client->delete("{$this->basePath}/servers/{$id}/bans", $data);
+    }
+
+    /**
+     * Delete a ban by its ban id via the POST endpoint.
+     *
+     * @throws ApiException
+     * @throws GuzzleException
+     */
+    public function deleteBan(int $id, int $banId): array
+    {
+        return $this->client->post("{$this->basePath}/servers/{$id}/bans/{$banId}/delete");
+    }
+
+    /**
+     * Remove all ban rules from the server.
+     *
+     * @throws ApiException
+     * @throws GuzzleException
+     */
+    public function clearBans(int $id): array
+    {
+        return $this->client->post("{$this->basePath}/servers/{$id}/bans/clear");
     }
 }

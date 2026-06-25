@@ -9,6 +9,7 @@ use GuzzleHttp\Exception\GuzzleException;
 class DNS
 {
     private Client $client;
+    private string $basePath = 'v1/products/domains';
 
     public function __construct(Client $client)
     {
@@ -25,26 +26,28 @@ class DNS
      */
     public function get(string $domain): array
     {
-        return $this->client->get("v1/domains/{$domain}/dns");
+        return $this->client->get("{$this->basePath}/{$domain}/dns");
     }
 
     /**
      * Create a DNS record
      *
      * @param string $domain Domain name
-     * @param array $record Record data:
-     *   - type: string (A, AAAA, CNAME, MX, TXT, etc.)
-     *   - name: string
-     *   - content: string
-     *   - ttl: int (optional)
-     *   - priority: int (for MX records)
+     * @param string $type Record type (A, AAAA, CNAME, MX, TXT, etc.)
+     * @param string $name Record name
+     * @param string $content Record content
+     * @param array $extra Optional fields: ttl, priority
      *
      * @throws ApiException
      * @throws GuzzleException
      */
-    public function create(string $domain, array $record): array
+    public function create(string $domain, string $type, string $name, string $content, array $extra = []): array
     {
-        return $this->client->post("v1/domains/{$domain}/dns", $record);
+        return $this->client->post("{$this->basePath}/{$domain}/dns", array_merge([
+            'type' => $type,
+            'name' => $name,
+            'content' => $content,
+        ], $extra));
     }
 
     /**
@@ -52,18 +55,18 @@ class DNS
      *
      * @param string $domain Domain name
      * @param string|int $recordId Record ID
-     * @param array $data Record data to update
+     * @param array $data Record data to update (type, name, content, ttl, priority)
      *
      * @throws ApiException
      * @throws GuzzleException
      */
     public function update(string $domain, string|int $recordId, array $data): array
     {
-        return $this->client->put("v1/domains/{$domain}/dns/{$recordId}", $data);
+        return $this->client->put("{$this->basePath}/{$domain}/dns/{$recordId}", $data);
     }
 
     /**
-     * Bulk update DNS records
+     * Bulk replace DNS records
      *
      * @param string $domain Domain name
      * @param array $records Array of record data
@@ -73,8 +76,8 @@ class DNS
      */
     public function bulkUpdate(string $domain, array $records): array
     {
-        return $this->client->put("v1/domains/{$domain}/dns", [
-            'records' => $records,
+        return $this->client->put("{$this->basePath}/{$domain}/dns", [
+            'records' => array_values($records),
         ]);
     }
 
@@ -89,7 +92,7 @@ class DNS
      */
     public function delete(string $domain, string|int $recordId): array
     {
-        return $this->client->delete("v1/domains/{$domain}/dns/{$recordId}");
+        return $this->client->delete("{$this->basePath}/{$domain}/dns/{$recordId}");
     }
 
     /**
@@ -102,21 +105,23 @@ class DNS
      */
     public function getZones(string $domain): array
     {
-        return $this->client->get("v1/domains/{$domain}/dns/zones");
+        return $this->client->get("{$this->basePath}/{$domain}/dns/zones");
     }
 
     /**
      * Create a DNS zone
      *
      * @param string $domain Domain name
-     * @param array $zone Zone data
+     * @param string $name Zone name
      *
      * @throws ApiException
      * @throws GuzzleException
      */
-    public function createZone(string $domain, array $zone): array
+    public function createZone(string $domain, string $name): array
     {
-        return $this->client->post("v1/domains/{$domain}/dns/zones", $zone);
+        return $this->client->post("{$this->basePath}/{$domain}/dns/zones", [
+            'name' => $name,
+        ]);
     }
 
     /**
@@ -124,14 +129,16 @@ class DNS
      *
      * @param string $domain Domain name
      * @param string|int $zoneId Zone ID
-     * @param array $data Zone data to update
+     * @param string $name Zone name
      *
      * @throws ApiException
      * @throws GuzzleException
      */
-    public function updateZone(string $domain, string|int $zoneId, array $data): array
+    public function updateZone(string $domain, string|int $zoneId, string $name): array
     {
-        return $this->client->put("v1/domains/{$domain}/dns/zones/{$zoneId}", $data);
+        return $this->client->put("{$this->basePath}/{$domain}/dns/zones/{$zoneId}", [
+            'name' => $name,
+        ]);
     }
 
     /**
@@ -145,6 +152,6 @@ class DNS
      */
     public function deleteZone(string $domain, string|int $zoneId): array
     {
-        return $this->client->delete("v1/domains/{$domain}/dns/zones/{$zoneId}");
+        return $this->client->delete("{$this->basePath}/{$domain}/dns/zones/{$zoneId}");
     }
 }

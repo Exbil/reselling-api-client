@@ -14,6 +14,7 @@ class TeamSpeak
     private ?Clients $clientsHandler = null;
     private ?Security $securityHandler = null;
     private ?Backups $backupsHandler = null;
+    private ?Complaints $complaintsHandler = null;
 
     public function __construct(Client $client)
     {
@@ -31,6 +32,17 @@ class TeamSpeak
     public function getPricing(): array
     {
         return $this->client->get("{$this->basePath}/pricing");
+    }
+
+    /**
+     * Get the raw price list.
+     *
+     * @throws ApiException
+     * @throws GuzzleException
+     */
+    public function getPrices(): array
+    {
+        return $this->client->get("{$this->basePath}/prices");
     }
 
     // ==================== SERVERS ====================
@@ -71,6 +83,19 @@ class TeamSpeak
     }
 
     /**
+     * Order a new TeamSpeak server (alternative endpoint).
+     *
+     * @param array{name:string,slots:int,datacenter_id?:int} $config
+     *
+     * @throws ApiException
+     * @throws GuzzleException
+     */
+    public function createAlt(array $config): array
+    {
+        return $this->client->post("{$this->basePath}/servers/create", $config);
+    }
+
+    /**
      * Convenience helper to order a server.
      *
      * @throws ApiException
@@ -98,6 +123,17 @@ class TeamSpeak
     }
 
     /**
+     * Request deletion of a TeamSpeak server (alternative endpoint).
+     *
+     * @throws ApiException
+     * @throws GuzzleException
+     */
+    public function deleteAlt(int $id): array
+    {
+        return $this->client->post("{$this->basePath}/servers/{$id}/delete");
+    }
+
+    /**
      * Live view: server info, channels and connected clients.
      *
      * @throws ApiException
@@ -117,6 +153,30 @@ class TeamSpeak
     public function extras(int $id): array
     {
         return $this->client->get("{$this->basePath}/servers/{$id}/extras");
+    }
+
+    /**
+     * Get live statistics for the virtual server.
+     *
+     * @throws ApiException
+     * @throws GuzzleException
+     */
+    public function stats(int $id): array
+    {
+        return $this->client->get("{$this->basePath}/servers/{$id}/stats");
+    }
+
+    /**
+     * Get historical statistics for the virtual server.
+     *
+     * @param array $query Optional filters.
+     *
+     * @throws ApiException
+     * @throws GuzzleException
+     */
+    public function statsHistory(int $id, array $query = []): array
+    {
+        return $this->client->get("{$this->basePath}/servers/{$id}/stats/history", $query);
     }
 
     // ==================== POWER ====================
@@ -159,6 +219,19 @@ class TeamSpeak
     }
 
     /**
+     * Upgrade the slot count of the server.
+     *
+     * @throws ApiException
+     * @throws GuzzleException
+     */
+    public function upgrade(int $id, int $slots): array
+    {
+        return $this->client->patch("{$this->basePath}/servers/{$id}/upgrade", [
+            'slots' => $slots,
+        ]);
+    }
+
+    /**
      * Update server settings (name, password, messages).
      *
      * @param array{name:string,password?:string,welcome_message?:string,host_message?:string} $settings
@@ -172,6 +245,19 @@ class TeamSpeak
     }
 
     /**
+     * Patch server settings (name, welcome message, host banner).
+     *
+     * @param array{name?:string,welcome_message?:string,hostbanner_url?:string,hostbanner_gfx_url?:string} $settings
+     *
+     * @throws ApiException
+     * @throws GuzzleException
+     */
+    public function patchSettings(int $id, array $settings = []): array
+    {
+        return $this->client->patch("{$this->basePath}/servers/{$id}/settings", $settings);
+    }
+
+    /**
      * Send a text message to every connected client.
      *
      * @throws ApiException
@@ -182,6 +268,61 @@ class TeamSpeak
         return $this->client->post("{$this->basePath}/servers/{$id}/message", [
             'message' => $message,
         ]);
+    }
+
+    /**
+     * Kick a client from the server.
+     *
+     * @throws ApiException
+     * @throws GuzzleException
+     */
+    public function kick(int $id, int $clid, string $reason = '', array $extra = []): array
+    {
+        return $this->client->post("{$this->basePath}/servers/{$id}/kick", array_merge([
+            'clid' => $clid,
+            'reason' => $reason,
+        ], $extra));
+    }
+
+    /**
+     * Ban a connected client.
+     *
+     * @throws ApiException
+     * @throws GuzzleException
+     */
+    public function ban(int $id, int $clid, int $seconds = 3600, string $reason = '', array $extra = []): array
+    {
+        return $this->client->post("{$this->basePath}/servers/{$id}/ban", array_merge([
+            'clid' => $clid,
+            'seconds' => $seconds,
+            'reason' => $reason,
+        ], $extra));
+    }
+
+    // ==================== TSDNS ====================
+
+    /**
+     * Set the TSDNS hostname for the server.
+     *
+     * @throws ApiException
+     * @throws GuzzleException
+     */
+    public function setTsdns(int $id, string $hostname): array
+    {
+        return $this->client->patch("{$this->basePath}/servers/{$id}/tsdns", [
+            'hostname' => $hostname,
+        ]);
+    }
+
+    /**
+     * Remove the TSDNS hostname from the server.
+     *
+     * @throws ApiException
+     * @throws GuzzleException
+     */
+    public function removeTsdns(int $id): array
+    {
+        return $this->client->post("{$this->basePath}/servers/{$id}/tsdns/remove");
     }
 
     // ==================== SUB-HANDLERS ====================
@@ -216,5 +357,13 @@ class TeamSpeak
     public function backups(): Backups
     {
         return $this->backupsHandler ??= new Backups($this->client);
+    }
+
+    /**
+     * Complaint management.
+     */
+    public function complaints(): Complaints
+    {
+        return $this->complaintsHandler ??= new Complaints($this->client);
     }
 }

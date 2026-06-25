@@ -30,55 +30,65 @@ class Cluster
     /**
      * Get a specific cluster
      *
-     * @throws ApiException
-     * @throws GuzzleException
-     */
-    public function get(string $clusterSlug): array
-    {
-        return $this->client->get("{$this->basePath}/clusters/{$clusterSlug}");
-    }
-
-    /**
-     * Get all available OS versions (across every cluster)
+     * @param string $cluster Cluster slug or ID
      *
      * @throws ApiException
      * @throws GuzzleException
      */
-    public function getOsListAll(): array
+    public function get(string $cluster): array
     {
-        return $this->client->get("{$this->basePath}/os-list");
+        return $this->client->get("{$this->basePath}/clusters/{$cluster}");
     }
 
     /**
      * Get available OS versions for a cluster
      *
-     * @throws ApiException
-     * @throws GuzzleException
-     */
-    public function getOsList(string $clusterSlug): array
-    {
-        return $this->client->get("{$this->basePath}/cluster/{$clusterSlug}/os-list");
-    }
-
-    /**
-     * Get price list for a cluster
+     * @param string $cluster Cluster slug or ID
      *
      * @throws ApiException
      * @throws GuzzleException
      */
-    public function getPrices(string $clusterSlug): array
+    public function getOsList(string $cluster): array
     {
-        return $this->client->get("{$this->basePath}/cluster/{$clusterSlug}/pricing");
+        return $this->client->get("{$this->basePath}/cluster/{$cluster}/os-list");
     }
 
     /**
-     * Calculate price for a server configuration
+     * Get the price list for a cluster
+     *
+     * @param string $cluster Cluster slug or ID
      *
      * @throws ApiException
      * @throws GuzzleException
      */
-    public function calculatePrice(string $clusterSlug, array $config): array
+    public function getPricing(string $cluster): array
     {
-        return $this->client->post("{$this->basePath}/cluster/{$clusterSlug}/calculator", $config);
+        return $this->client->get("{$this->basePath}/cluster/{$cluster}/pricing");
+    }
+
+    /**
+     * Calculate the price for a server configuration
+     *
+     * Documented body fields: cores, ram_mb, disk_gb (required), plus optional
+     * datacenter_id, datacenter_slug, backup_slots, ipv4_addresses,
+     * ipv6_addresses, ipv4_count, ipv6_count, ipv4, ipv6.
+     *
+     * @param string $cluster Cluster slug or ID
+     * @param int $cores
+     * @param int $ramMb
+     * @param int $diskGb
+     * @param array $extra Additional body fields
+     *
+     * @throws ApiException
+     * @throws GuzzleException
+     */
+    public function calculatePrice(string $cluster, int $cores, int $ramMb, int $diskGb, array $extra = []): array
+    {
+        $data = array_merge($extra, [
+            'cores' => $cores,
+            'ram_mb' => $ramMb,
+            'disk_gb' => $diskGb,
+        ]);
+        return $this->client->post("{$this->basePath}/cluster/{$cluster}/calculator", $data);
     }
 }

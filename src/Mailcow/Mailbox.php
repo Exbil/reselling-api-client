@@ -17,24 +17,6 @@ class Mailbox
     }
 
     /**
-     * Get mailboxes for a domain
-     *
-     * @param string $domain Domain name
-     * @param int|null $mailboxId Optional mailbox ID
-     *
-     * @throws ApiException
-     * @throws GuzzleException
-     */
-    public function getAll(string $domain, ?int $mailboxId = null): array
-    {
-        $path = "{$this->basePath}/{$domain}/mailboxes";
-        if ($mailboxId !== null) {
-            $path .= "/{$mailboxId}";
-        }
-        return $this->client->get($path);
-    }
-
-    /**
      * Get a specific mailbox
      *
      * @param string $domain Domain name
@@ -54,10 +36,10 @@ class Mailbox
      * @param string $domain Domain name
      * @param string $address Local part or full email address
      * @param array $config Mailbox configuration:
-     *   - password: string (optional)
      *   - name: string (optional)
+     *   - password: string (optional)
      *   - quota_mb: int (optional)
-     *   - active: boolean (optional)
+     *   - active: bool (optional)
      *
      * @throws ApiException
      * @throws GuzzleException
@@ -74,10 +56,10 @@ class Mailbox
      * @param string $domain Domain name
      * @param string $address Local part or full email address
      * @param array $config Update options:
-     *   - password: string (min 12 chars, optional)
      *   - name: string (optional)
+     *   - password: string (optional)
      *   - quota_mb: int (optional)
-     *   - active: boolean (optional)
+     *   - active: bool (optional)
      *
      * @throws ApiException
      * @throws GuzzleException

@@ -9,6 +9,7 @@ use GuzzleHttp\Exception\GuzzleException;
 class Nameserver
 {
     private Client $client;
+    private string $basePath = 'v1/products/domains';
 
     public function __construct(Client $client)
     {
@@ -25,7 +26,7 @@ class Nameserver
      */
     public function get(string $domain): array
     {
-        return $this->client->get("v1/domains/{$domain}/nameservers");
+        return $this->client->get("{$this->basePath}/{$domain}/nameservers");
     }
 
     /**
@@ -39,8 +40,8 @@ class Nameserver
      */
     public function update(string $domain, array $nameservers): array
     {
-        return $this->client->put("v1/domains/{$domain}/nameservers", [
-            'nameservers' => $nameservers,
+        return $this->client->put("{$this->basePath}/{$domain}/nameservers", [
+            'nameservers' => array_values($nameservers),
         ]);
     }
 }

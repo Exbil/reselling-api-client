@@ -17,6 +17,17 @@ class Clients
     }
 
     /**
+     * List all connected clients of the virtual server.
+     *
+     * @throws ApiException
+     * @throws GuzzleException
+     */
+    public function getAll(int $id): array
+    {
+        return $this->client->get("{$this->basePath}/servers/{$id}/clients");
+    }
+
+    /**
      * Get details of a connected client (IP, version, country, connection time).
      *
      * @throws ApiException
@@ -42,31 +53,46 @@ class Clients
     }
 
     /**
-     * Kick a client from the server.
+     * Kick a client from the channel or the server.
      *
      * @throws ApiException
      * @throws GuzzleException
      */
-    public function kick(int $id, int $clid, string $reason = ''): array
+    public function kick(int $id, int $clid, string $reason = '', string $type = '', array $extra = []): array
     {
-        return $this->client->post("{$this->basePath}/servers/{$id}/kick", [
+        $data = ['clid' => $clid, 'reason' => $reason];
+        if ($type !== '') {
+            $data['type'] = $type;
+        }
+
+        return $this->client->post("{$this->basePath}/servers/{$id}/clients/kick", array_merge($data, $extra));
+    }
+
+    /**
+     * Send a private text message to a connected client.
+     *
+     * @throws ApiException
+     * @throws GuzzleException
+     */
+    public function message(int $id, int $clid, string $message): array
+    {
+        return $this->client->post("{$this->basePath}/servers/{$id}/clients/message", [
             'clid' => $clid,
-            'reason' => $reason,
+            'message' => $message,
         ]);
     }
 
     /**
-     * Ban a connected client.
+     * Poke a connected client with a message.
      *
      * @throws ApiException
      * @throws GuzzleException
      */
-    public function ban(int $id, int $clid, int $seconds = 3600, string $reason = ''): array
+    public function poke(int $id, int $clid, string $message): array
     {
-        return $this->client->post("{$this->basePath}/servers/{$id}/ban", [
+        return $this->client->post("{$this->basePath}/servers/{$id}/clients/poke", [
             'clid' => $clid,
-            'seconds' => $seconds,
-            'reason' => $reason,
+            'message' => $message,
         ]);
     }
 }

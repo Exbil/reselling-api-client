@@ -9,6 +9,7 @@ use GuzzleHttp\Exception\GuzzleException;
 class Domain
 {
     private Client $client;
+    private string $basePath = 'v1/products/domains';
     private ?DNS $dnsHandler = null;
     private ?Nameserver $nameserverHandler = null;
     private ?Handle $handleHandler = null;
@@ -27,7 +28,7 @@ class Domain
      */
     public function getAll(): array
     {
-        return $this->client->get('v1/domains');
+        return $this->client->get($this->basePath);
     }
 
     /**
@@ -40,7 +41,7 @@ class Domain
      */
     public function get(string $domain): array
     {
-        return $this->client->get("v1/domains/{$domain}");
+        return $this->client->get("{$this->basePath}/{$domain}");
     }
 
     /**
@@ -53,7 +54,7 @@ class Domain
      */
     public function checkAvailability(string $domain): array
     {
-        return $this->client->post('v1/domains/check', [
+        return $this->client->post("{$this->basePath}/check", [
             'domain' => $domain,
         ]);
     }
@@ -70,7 +71,7 @@ class Domain
      */
     public function checkBulkAvailability(array $domains): array
     {
-        return $this->client->post('v1/domains/check-bulk', [
+        return $this->client->post("{$this->basePath}/check-bulk", [
             'domains' => array_values($domains),
         ]);
     }
@@ -79,24 +80,23 @@ class Domain
      * Register a new domain
      *
      * @param string $domain Domain name
-     * @param array $handles Handle configuration:
-     *   - owner_handle: string|int
-     *   - admin_handle: string|int
-     *   - tech_handle: string|int
-     *   - billing_handle: string|int (optional)
+     * @param string $handleId Contact handle ID used for all roles
      * @param array $nameservers List of nameservers (optional)
-     * @param int $period Registration period in years (optional)
+     * @param int $years Registration period in years (optional)
+     * @param array $extra Additional fields: auto_renew, privacy_protection,
+     *                     dnssec_enabled, notes
      *
      * @throws ApiException
      * @throws GuzzleException
      */
-    public function register(string $domain, array $handles, array $nameservers = [], int $period = 1): array
+    public function register(string $domain, string $handleId, array $nameservers = [], int $years = 1, array $extra = []): array
     {
-        return $this->client->post('v1/domains/register', array_merge([
+        return $this->client->post("{$this->basePath}/register", array_merge([
             'domain' => $domain,
-            'period' => $period,
-            'nameservers' => $nameservers,
-        ], $handles));
+            'handle_id' => $handleId,
+            'nameservers' => array_values($nameservers),
+            'years' => $years,
+        ], $extra));
     }
 
     /**
@@ -104,19 +104,24 @@ class Domain
      *
      * @param string $domain Domain name
      * @param string $authcode Authorization code
-     * @param array $handles Handle configuration
+     * @param string $handleId Contact handle ID used for all roles
      * @param array $nameservers List of nameservers (optional)
+     * @param int $years Registration period in years (optional)
+     * @param array $extra Additional fields: auto_renew, privacy_protection,
+     *                     dnssec_enabled, notes
      *
      * @throws ApiException
      * @throws GuzzleException
      */
-    public function transfer(string $domain, string $authcode, array $handles, array $nameservers = []): array
+    public function transfer(string $domain, string $authcode, string $handleId, array $nameservers = [], int $years = 1, array $extra = []): array
     {
-        return $this->client->post('v1/domains/transfer', array_merge([
+        return $this->client->post("{$this->basePath}/transfer", array_merge([
             'domain' => $domain,
             'authcode' => $authcode,
-            'nameservers' => $nameservers,
-        ], $handles));
+            'handle_id' => $handleId,
+            'nameservers' => array_values($nameservers),
+            'years' => $years,
+        ], $extra));
     }
 
     /**
@@ -129,7 +134,7 @@ class Domain
      */
     public function sync(string $domain): array
     {
-        return $this->client->post("v1/domains/{$domain}/sync");
+        return $this->client->post("{$this->basePath}/{$domain}/sync");
     }
 
     /**
@@ -142,21 +147,41 @@ class Domain
      */
     public function getAuthcode(string $domain): array
     {
-        return $this->client->get("v1/domains/{$domain}/authcode");
+        return $this->client->get("{$this->basePath}/{$domain}/authcode");
     }
 
     /**
-     * Update domain handles
+     * Update domain contact handles
      *
      * @param string $domain Domain name
-     * @param array $handles Handle configuration
+     * @param array $handles Handle configuration:
+     *   - owner_handle_id: string
+     *   - admin_handle_id: string
+     *   - tech_handle_id: string
+     *   - billing_handle_id: string
      *
      * @throws ApiException
      * @throws GuzzleException
      */
     public function updateHandles(string $domain, array $handles): array
     {
-        return $this->client->put("v1/domains/{$domain}/handles", $handles);
+        return $this->client->put("{$this->basePath}/{$domain}/handles", $handles);
+    }
+
+    /**
+     * Toggle automatic renewal for a domain
+     *
+     * @param string $domain Domain name
+     * @param bool $autoRenew Whether auto-renew should be enabled
+     *
+     * @throws ApiException
+     * @throws GuzzleException
+     */
+    public function setAutoRenew(string $domain, bool $autoRenew): array
+    {
+        return $this->client->put("{$this->basePath}/{$domain}/auto-renew", [
+            'auto_renew' => $autoRenew,
+        ]);
     }
 
     /**
@@ -169,7 +194,7 @@ class Domain
      */
     public function requestDeletion(string $domain): array
     {
-        return $this->client->post("v1/domains/{$domain}/delete");
+        return $this->client->post("{$this->basePath}/{$domain}/delete");
     }
 
     /**
@@ -182,7 +207,7 @@ class Domain
      */
     public function cancelDeletion(string $domain): array
     {
-        return $this->client->post("v1/domains/{$domain}/undelete");
+        return $this->client->post("{$this->basePath}/{$domain}/undelete");
     }
 
     /**

@@ -17,24 +17,6 @@ class DomainAdmin
     }
 
     /**
-     * Get domain admins
-     *
-     * @param string $domain Domain name
-     * @param int|null $adminId Optional admin ID
-     *
-     * @throws ApiException
-     * @throws GuzzleException
-     */
-    public function getAll(string $domain, ?int $adminId = null): array
-    {
-        $path = "{$this->basePath}/domain-admin/{$domain}";
-        if ($adminId !== null) {
-            $path .= "/{$adminId}";
-        }
-        return $this->client->get($path);
-    }
-
-    /**
      * Get a specific domain admin
      *
      * @param string $domain Domain name
@@ -53,7 +35,7 @@ class DomainAdmin
      *
      * @param string $domain Domain name
      * @param string $username Admin username
-     * @param string|null $password Password (min 12 chars, auto-generated if null)
+     * @param string|null $password Password (auto-generated if null)
      *
      * @throws ApiException
      * @throws GuzzleException
@@ -74,8 +56,8 @@ class DomainAdmin
      * @param string $username Current username
      * @param array $config Update options:
      *   - username_new: string (optional)
-     *   - password: string (min 12 chars, optional)
-     *   - active: boolean (optional)
+     *   - password: string (optional)
+     *   - active: bool (optional)
      *
      * @throws ApiException
      * @throws GuzzleException

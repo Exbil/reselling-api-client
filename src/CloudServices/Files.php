@@ -132,36 +132,46 @@ class Files
     /**
      * Compress files into an archive
      *
-     * @param string $uuid Service UUID
-     * @param array $files Array of file paths to compress
-     * @param string $output Output archive path
+     * @param string      $uuid      Service UUID
+     * @param array       $files     Array of file paths to compress
+     * @param string|null $output    Optional output archive path
+     * @param string|null $directory Optional working directory the files are relative to
      *
      * @throws ApiException
      * @throws GuzzleException
      */
-    public function compress(string $uuid, array $files, string $output): array
+    public function compress(string $uuid, array $files, ?string $output = null, ?string $directory = null): array
     {
-        return $this->client->post("{$this->basePath}/{$uuid}/files/compress", [
-            'files' => $files,
-            'output' => $output,
-        ]);
+        $data = ['files' => $files];
+        if ($output !== null) {
+            $data['output'] = $output;
+        }
+        if ($directory !== null) {
+            $data['directory'] = $directory;
+        }
+        return $this->client->post("{$this->basePath}/{$uuid}/files/compress", $data);
     }
 
     /**
      * Decompress an archive
      *
-     * @param string $uuid Service UUID
-     * @param string $file Archive file path
-     * @param string $target Target directory
+     * @param string      $uuid      Service UUID
+     * @param string      $file      Archive file path
+     * @param string|null $target    Optional target directory
+     * @param string|null $directory Optional working directory the archive is relative to
      *
      * @throws ApiException
      * @throws GuzzleException
      */
-    public function decompress(string $uuid, string $file, string $target): array
+    public function decompress(string $uuid, string $file, ?string $target = null, ?string $directory = null): array
     {
-        return $this->client->post("{$this->basePath}/{$uuid}/files/decompress", [
-            'file' => $file,
-            'target' => $target,
-        ]);
+        $data = ['file' => $file];
+        if ($target !== null) {
+            $data['target'] = $target;
+        }
+        if ($directory !== null) {
+            $data['directory'] = $directory;
+        }
+        return $this->client->post("{$this->basePath}/{$uuid}/files/decompress", $data);
     }
 }

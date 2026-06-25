@@ -9,6 +9,7 @@ use GuzzleHttp\Exception\GuzzleException;
 class Handle
 {
     private Client $client;
+    private string $basePath = 'v1/products/domains';
 
     public function __construct(Client $client)
     {
@@ -23,7 +24,7 @@ class Handle
      */
     public function getTypes(): array
     {
-        return $this->client->get('v1/domains/handles/types');
+        return $this->client->get("{$this->basePath}/handles/types");
     }
 
     /**
@@ -34,7 +35,7 @@ class Handle
      */
     public function getAll(): array
     {
-        return $this->client->get('v1/domains/handles');
+        return $this->client->get("{$this->basePath}/handles");
     }
 
     /**
@@ -47,30 +48,31 @@ class Handle
      */
     public function get(string|int $handleId): array
     {
-        return $this->client->get("v1/domains/handles/{$handleId}");
+        return $this->client->get("{$this->basePath}/handles/{$handleId}");
     }
 
     /**
      * Create a new handle
      *
      * @param array $data Handle data:
-     *   - type: string (e.g., "person", "org")
-     *   - firstname: string
-     *   - lastname: string
-     *   - organization: string (optional)
-     *   - street: string
-     *   - city: string
-     *   - zip: string
-     *   - country: string (ISO 2-letter code)
-     *   - phone: string
-     *   - email: string
+     *   - contact_type: string (required)
+     *   - first_name: string (required)
+     *   - last_name: string (required)
+     *   - email: string (required)
+     *   - phone: string (required)
+     *   - street: string (required)
+     *   - postal_code: string (required)
+     *   - city: string (required)
+     *   - country_code: string (required, ISO 2-letter code)
+     *   - name, organization, fax, house_number, state,
+     *     organization_number, vat_number, is_default (optional)
      *
      * @throws ApiException
      * @throws GuzzleException
      */
     public function create(array $data): array
     {
-        return $this->client->post('v1/domains/handles', $data);
+        return $this->client->post("{$this->basePath}/handles", $data);
     }
 
     /**
@@ -84,7 +86,7 @@ class Handle
      */
     public function update(string|int $handleId, array $data): array
     {
-        return $this->client->put("v1/domains/handles/{$handleId}", $data);
+        return $this->client->put("{$this->basePath}/handles/{$handleId}", $data);
     }
 
     /**
@@ -97,7 +99,7 @@ class Handle
      */
     public function delete(string|int $handleId): array
     {
-        return $this->client->delete("v1/domains/handles/{$handleId}");
+        return $this->client->delete("{$this->basePath}/handles/{$handleId}");
     }
 
     /**
@@ -110,6 +112,6 @@ class Handle
      */
     public function setDefault(string|int $handleId): array
     {
-        return $this->client->post("v1/domains/handles/{$handleId}/default");
+        return $this->client->post("{$this->basePath}/handles/{$handleId}/default");
     }
 }
