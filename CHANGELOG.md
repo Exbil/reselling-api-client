@@ -5,7 +5,7 @@ All notable changes to `exbil/reselling-api-client` are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [2.0.0] - 2026-07-30
 
 ### Added
 - **`setRootPassword($uuid, $password)`** — change the container's root
@@ -26,17 +26,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - **`consoleToken()`** takes an optional `$type` — `'serial'` for the xterm
   TTY (default, unchanged) or `'vnc'` for the graphical console.
-
-### Removed
-- **Container Registries**: `$client->cloudServices()->registries()` and the
-  whole `CloudServices\Registries` class. The registry is no longer a product
-  of its own — it is an ordinary Cloud Services template now (one Zot
-  container per customer instead of a shared namespace), so it is ordered
-  through `cloudServices()->create()` with `template_slug: "lxc-registry"`
-  like any other service. The `/products/cloudservices/registries/*`
-  endpoints are gone from the API.
-
-### Changed
 - **`cpu_limit` is a whole core count**, not a percentage of one core. Where
   you sent `200` for two cores, send `2`. This applies to `create()` and
   `updateResources()`, and is what `get()` and `getAll()` return. Pricing is
@@ -61,6 +50,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   password.
 - **`create()`** no longer accepts a `docker_image` override — templates are
   container images no more.
+
+
+### Removed
+- **Container Registries**: `$client->cloudServices()->registries()` and the
+  whole `CloudServices\Registries` class. The registry is no longer a product
+  of its own — it is an ordinary Cloud Services template now (one Zot
+  container per customer instead of a shared namespace), so it is ordered
+  through `cloudServices()->create()` with `template_slug: "lxc-registry"`
+  like any other service. The `/products/cloudservices/registries/*`
+  endpoints are gone from the API.
+## [1.1.0] - 2026-06-25
 
 ### Added
 - **TeamSpeak**: full support for the TeamSpeak product via
