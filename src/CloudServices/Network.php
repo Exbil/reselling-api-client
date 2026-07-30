@@ -7,13 +7,15 @@ use Exbil\ResellingAPI\Exceptions\ApiException;
 use GuzzleHttp\Exception\GuzzleException;
 
 /**
- * Per-server IPv6 lifecycle.
+ * Per-service addressing.
  *
- * The Reselling daemon exposes a node-wide healthcheck so consumers
- * can hide the "order another v6" CTA when the upstream provider's
- * transit is down. Existing assignments keep working — only new
- * orders are paused — and the SAME endpoint handles "nachbestellen"
- * once the healthcheck flips green again.
+ * The IPv6 ordering flow here only applies to backends that advertise it.
+ * Cloud Services now run as Proxmox LXC containers, which are given one
+ * address out of the node's prefix at creation time — there is nothing to
+ * order, and status()/list()/order()/release() answer 501 on such a node.
+ *
+ * Call status() first: `enabled: false` means the ordering flow is not
+ * available and the CTA should stay hidden.
  *
  * @api
  */

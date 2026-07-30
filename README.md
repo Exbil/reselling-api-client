@@ -550,7 +550,7 @@ addressed by their UUID.
 | `reinstall(string $uuid, array $options = [])` | Reinstall a service — see options below |
 | `status(string $uuid)` | Live resource usage / status |
 | `sendCommand(string $uuid, string $command)` | Send a console command (one-shot REST) |
-| `consoleToken(string $uuid)` | Issue a scoped token + wss:// URLs for the live console + stats streams |
+| `consoleToken(string $uuid)` | Open a single-use console session and return its URL |
 | `allocations(string $uuid)` | List every port allocation with role + protocol + description |
 
 ```php
@@ -597,44 +597,43 @@ $client->cloudServices()->allocations('a1b2c3d4-...');
 
 | Key | Type | Description |
 |-----|------|-------------|
-| `auto_start` | `bool` | When `true`, the daemon starts the server the moment the wipe + image pull finishes — the customer sees the entrypoint's seed phase (Downloading vanilla jar..., npm run setup, ...) in the live console without a second click. **Recommended for customer-facing flows.** |
 | `cloudservice` | `string` | Switch to a different service template at the same time (template-switch reinstall). |
 | `environment` | `array` | Override environment variables for the (possibly new) template. |
 
 ```php
-$client->cloudServices()->reinstall('a1b2c3d4-...', ['auto_start' => true]);
+$client->cloudServices()->reinstall('a1b2c3d4-...');
 ```
 
-**`consoleToken($uuid)` — Live WebSocket console + stats**
+**`consoleToken($uuid)` — console session**
 
-Use this instead of polling REST `sendCommand()` when you need a live
-console view or want to stream output back to a client. The daemon
-accepts a short-lived (5 min) scoped token via
-`Sec-WebSocket-Protocol`, so the token never lands in URLs / proxy
-logs / browser history.
+Cloud Services run as Proxmox LXC containers. A container's console is an
+interactive TTY on the node, not a log stream, so this hands back a ready
+single-use URL rather than a token you assemble a socket from.
 
 ```php
-$ws = $client->cloudServices()->consoleToken('a1b2c3d4-...');
-// $ws = [
-//   'token'               => 'cst_...',
-//   'subprotocols'        => ['cst', 'cst_...'],
-//   'websocket_url'       => 'wss://node01.example.com:443/api/v1/servers/<uuid>/console',
-//   'stats_websocket_url' => 'wss://node01.example.com:443/api/v1/servers/<uuid>/stats',
-//   'expires_in_sec'      => 300,
+$session = $client->cloudServices()->consoleToken('a1b2c3d4-...');
+// $session = [
+//   'kind'           => 'url',
+//   'url'            => 'https://console.example.com/?token=...&type=serial',
+//   'expires_in_sec' => 10,
 // ]
 ```
 
-Browser-side (vanilla JS):
+Open the URL directly — a browser tab, or an iframe:
 
-```js
-const ws = new WebSocket(data.websocket_url, data.subprotocols);
-ws.onmessage = e => console.log(e.data);
-ws.send(JSON.stringify({event: 'command', command: 'list'}));
+```html
+<iframe src="<?= $session['url'] ?>" style="width:100%;height:600px;border:0"></iframe>
 ```
 
-Token TTL is ~5 min; re-call `consoleToken()` before expiry to keep
-a long-running session alive. The same token authenticates BOTH the
-console and the stats WebSocket — connect to whichever URL you need.
+The proxy consumes the ticket on first connect, so the URL cannot be reused;
+call `consoleToken()` again for another session. Log in as `root` with the
+password from the service record.
+
+> **Changed:** before the LXC backend this returned `token`,
+> `subprotocols`, `websocket_url` and `stats_websocket_url` for a daemon
+> WebSocket. Those keys are gone. `sendCommand()` is likewise unavailable —
+> a container has no single foreground process to pipe stdin into — and
+> answers 501.
 
 #### Power (`$client->cloudServices()->power()`)
 
@@ -704,10 +703,9 @@ $client->cloudServices()->backups()->upload(
 );
 
 // Restore. switch_template defaults to true — when the archive was
-// taken on a different template (TS3 backup on a TS6 server) the
-// daemon flips the server's cloudservice_id + docker_image to match
-// the backup before extracting. Pass force=true for operator
-// recovery (skips both the cross-team and cross-template guards).
+// taken on a different template the service is flipped over to that
+// template before extracting. Pass force=true for operator recovery
+// (skips both the cross-team and cross-template guards).
 $client->cloudServices()->backups()->restore(
     'a1b2c3d4-...',
     'backup-uuid-here',
@@ -742,70 +740,6 @@ A 503 response carries a `detail.last_checked_at` + `detail.last_error`
 explaining why the upstream is down; surface that to the operator
 rather than retrying blindly.
 
-#### Container Registries (`$client->cloudServices()->registries()`)
-
-Customer-owned private Docker registries hosted on the same nodes.
-Each registry gets a `<namespace>.<node-domain>` URL and a generated
-admin password the customer uses to `docker login` + push images.
-Packaged (fixed slug → quotas) or custom (storage / repo / robot
-sliders).
-
-| Method | Description |
-|--------|-------------|
-| `getAll()` | Calling team's registries |
-| `get(string $uuid)` | Registry details + admin creds (MANAGE-only) |
-| `create(array $config)` | Order a new registry (package or custom mode) |
-| `delete(string $uuid)` | Tear down — secure-wipes blobs before releasing the slot |
-| `packages()` | Catalogue of available packages with prices |
-| `calculatePrice(array $payload)` | Live price preview for the order form |
-| `checkNamespace(string $namespace)` | Returns `{available: bool}` for the typed namespace |
-
-```php
-// === ORDER FLOW ============================================
-
-// 1) Show catalogue
-$packages = $client->cloudServices()->registries()->packages();
-
-// 2) Price-preview
-$preview = $client->cloudServices()->registries()->calculatePrice([
-    'mode'         => 'package',
-    'package_slug' => 'small',
-]);
-
-// 3) Reserve the namespace (live as customer types)
-$check = $client->cloudServices()->registries()->checkNamespace('myco-prod');
-if (!$check['data']['available']) {
-    throw new RuntimeException('Namespace taken');
-}
-
-// 4) Order
-$registry = $client->cloudServices()->registries()->create([
-    'mode'         => 'package',
-    'package_slug' => 'small',
-    'namespace'    => 'myco-prod',
-    'auto_upgrade' => true,
-]);
-
-// 5) Customer pushes images
-//    docker login myco-prod.registry.example.com -u admin -p <admin_password>
-//    docker push myco-prod.registry.example.com/myapp:v1.0
-```
-
-`packages()` returns slug, included storage / repos / robots, hourly
-cents and a marketing blurb so the order form can render the cards
-without separate copy decks. Custom mode bypasses the package step:
-
-```php
-$client->cloudServices()->registries()->create([
-    'mode'        => 'custom',
-    'storage_gb'  => 50,
-    'repo_limit'  => 20,
-    'robot_limit' => 10,
-    'namespace'   => 'myco-staging',
-]);
-```
-
----
 
 ### TeamSpeak
 

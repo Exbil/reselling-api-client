@@ -7,6 +7,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Removed
+- **Container Registries**: `$client->cloudServices()->registries()` and the
+  whole `CloudServices\Registries` class. The registry is no longer a product
+  of its own — it is an ordinary Cloud Services template now (one Zot
+  container per customer instead of a shared namespace), so it is ordered
+  through `cloudServices()->create()` with `template_slug: "lxc-registry"`
+  like any other service. The `/products/cloudservices/registries/*`
+  endpoints are gone from the API.
+
+### Changed
+- **`consoleToken()`** returns a single-use console URL instead of a
+  WebSocket token: `{kind: "url", url, expires_in_sec}`. The previous
+  `token`, `subprotocols`, `websocket_url` and `stats_websocket_url` keys no
+  longer exist. Cloud Services run as Proxmox LXC containers, whose console
+  is an interactive TTY rather than a log stream, so the session is opened by
+  following the URL (browser tab or iframe).
+- **`sendCommand()`** answers 501 on container-backed services. There is no
+  single foreground process to pipe stdin into; use the console session or
+  SSH into the container instead.
+- **`network()`** — the per-service IPv6 ordering flow only applies to
+  backends that advertise it. A container is given its address when it is
+  created, so `status()` reports `enabled: false` and the order/release calls
+  answer 501. Check `status()` before showing the CTA.
+- **`reinstall()`** no longer takes `auto_start`, and is more destructive than
+  it was: the container is destroyed and the template's master cloned again,
+  so the service returns on a new VMID with new addresses and a new root
+  password.
+- **`create()`** no longer accepts a `docker_image` override — templates are
+  container images no more.
+
 ### Added
 - **TeamSpeak**: full support for the TeamSpeak product via
   `$client->teamSpeak()`. Servers (`getPricing`, `getAll`, `get`, `order`/

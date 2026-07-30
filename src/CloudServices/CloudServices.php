@@ -14,7 +14,6 @@ class CloudServices
     private ?Files $filesHandler = null;
     private ?Backups $backupsHandler = null;
     private ?Network $networkHandler = null;
-    private ?Registries $registriesHandler = null;
 
     public function __construct(Client $client)
     {
@@ -62,11 +61,10 @@ class CloudServices
      *   {
      *     "templates": [
      *       {
-     *         "slug": "teamspeak6-server",
-     *         "name": "TeamSpeak 6 Server",
-     *         "category": "Application",
+     *         "slug": "lxc-wordpress",
+     *         "name": "WordPress",
+     *         "category": "applications",
      *         "description": "...",
-     *         "docker_image": "ghcr.io/exbil/teamspeak6-server:latest",
      *         "environment_defaults": {...},
      *         "field_schema": [...],
      *         "resource_limits": {"min": {...}, "max": {...}},
@@ -96,7 +94,7 @@ class CloudServices
      *
      * @param array $config Service configuration. Required: node_id, template_slug,
      *                      name, memory_limit, disk_limit, cpu_limit. Optional:
-     *                      team_id, description, environment, docker_image.
+     *                      team_id, description, environment.
      *
      * @throws ApiException
      * @throws GuzzleException
@@ -121,18 +119,17 @@ class CloudServices
      * Reinstall a cloud service.
      *
      * @param string $uuid       Service UUID.
-     * @param array  $options    Optional overrides forwarded to the daemon:
+     * @param array  $options    Optional overrides:
      *                            - cloudservice (string): switch to a new
      *                              template at the same time.
      *                            - environment (array): override env vars
      *                              for the (possibly new) template.
-     *                            - auto_start (bool): when true, the daemon
-     *                              runs startServer() the moment the wipe
-     *                              + image pull completes, so the customer
-     *                              sees the entrypoint's seed phase in
-     *                              the live console without having to
-     *                              click Start a second time.
-     *                              Recommended for customer-facing flows.
+     *
+     *                            A reinstall destroys the container and
+     *                            clones the template's master again, so the
+     *                            service comes back on a new VMID with new
+     *                            addresses and a new root password. All
+     *                            customer data is lost — back up first.
      *
      * @throws ApiException
      * @throws GuzzleException
@@ -167,9 +164,10 @@ class CloudServices
     }
 
     /**
-     * Update runtime environment variables (game version, max players, etc.).
-     * Daemon enforces user_editable=true on every key; non-editable keys
-     * cause the upstream to return 422.
+     * Update runtime environment variables.
+     *
+     * Only keys the template marks user_editable=true are accepted; anything
+     * else is dropped before it reaches the node.
      *
      * @param array<string, string> $environment
      * @throws ApiException
@@ -197,6 +195,10 @@ class CloudServices
     /**
      * Send a command to the service console.
      *
+     * Only backends that run a single foreground process with a stdin to pipe
+     * into support this. The LXC backend does not — a container has no such
+     * process — and answers 501. Use the console session instead, or SSH.
+     *
      * @throws ApiException
      * @throws GuzzleException
      */
@@ -208,27 +210,24 @@ class CloudServices
     }
 
     /**
-     * Issue a short-lived scoped token + ready-to-use wss:// URLs for the
-     * live console + stats WebSocket streams.
+     * Open a console session for the service.
      *
-     * Returns:
+     * Cloud Services run as Proxmox LXC containers, whose console is an
+     * interactive TTY on the node rather than a log stream, so this returns a
+     * ready single-use URL instead of a token you assemble a socket from:
+     *
      *   {
-     *     "token":               "cst_...",
-     *     "subprotocols":        ["cst", "cst_..."],
-     *     "websocket_url":       "wss://<node>:443/api/v1/servers/<uuid>/console",
-     *     "stats_websocket_url": "wss://<node>:443/api/v1/servers/<uuid>/stats",
-     *     "expires_in_sec":      300
+     *     "kind":           "url",
+     *     "url":            "https://<console-proxy>/?token=...&type=serial",
+     *     "expires_in_sec": 10
      *   }
      *
-     * Pass the array under the `subprotocols` key as the WebSocket
-     * client's `Sec-WebSocket-Protocol` header — that's how the daemon
-     * authenticates the connection. URLs go in proxy logs and browser
-     * history, the subprotocol header doesn't, so the token never lands
-     * anywhere it shouldn't. Token TTL is ~5 min; re-call this endpoint
-     * to keep a long-running session alive.
+     * Open the URL directly (a browser tab or an iframe). The proxy consumes
+     * the ticket on first connect, so the URL is single-use — call this again
+     * for a new session rather than reusing one.
      *
-     * Browser example (vanilla JS):
-     *   const ws = new WebSocket(data.websocket_url, data.subprotocols);
+     * Before the LXC backend this returned `token` + `websocket_url` +
+     * `subprotocols` for a daemon socket; those keys are gone.
      *
      * @throws ApiException
      * @throws GuzzleException
@@ -306,23 +305,16 @@ class CloudServices
     }
 
     /**
-     * Network — per-server IPv6 lifecycle (status + order/list/release).
-     * Up to four addresses per server out of the operator's routed /64
-     * (or wider) prefix.
+     * Network — per-service addressing.
+     *
+     * `allocations()` on this class is the useful call. The per-server IPv6
+     * ordering flow only applies to backends that advertise it: an LXC
+     * container is given one address out of the node's prefix when it is
+     * created, so there is nothing to order and those endpoints answer 501.
      */
     public function network(): Network
     {
         return $this->networkHandler ??= new Network($this->client);
     }
 
-    /**
-     * Container Registries — order, list, show, delete the private
-     * registries customers can host their own Docker images in. Live
-     * at /products/cloudservices/registries/* with their own pricing
-     * + namespace-check helpers.
-     */
-    public function registries(): Registries
-    {
-        return $this->registriesHandler ??= new Registries($this->client);
-    }
 }
