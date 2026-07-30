@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **`setRootPassword($uuid, $password)`** — change the container's root
+  password. This is the credential used for SSH, SFTP and the web console;
+  the panel stores the new value only after the container has accepted it, so
+  a failed call leaves the previous password valid.
+- **`setDomain($uuid, $domain)`** — point a domain at a service, or pass
+  `null` to clear it. A node shares one public IPv4 between all its
+  containers, so a web service is only reachable by name once the edge proxy
+  knows which hostname belongs to which container; this saves the domain and
+  republishes the proxy in one step. Until a domain is set, the service is
+  still reachable on its forwarded port — see `allocations()`.
+- Service payloads now include `primary_domain`, `internal_ipv4`,
+  `public_ipv6` and `ipv6_count`. `allocation_ip` / `allocation_port` are the
+  *published* endpoint (the node's public address and the forwarded port),
+  not the container's private address as before.
+
+### Changed
+- **`consoleToken()`** takes an optional `$type` — `'serial'` for the xterm
+  TTY (default, unchanged) or `'vnc'` for the graphical console.
+
 ### Removed
 - **Container Registries**: `$client->cloudServices()->registries()` and the
   whole `CloudServices\Registries` class. The registry is no longer a product

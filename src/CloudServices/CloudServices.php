@@ -186,6 +186,49 @@ class CloudServices
     }
 
     /**
+     * Set the container's root password.
+     *
+     * This is the credential the customer uses for SSH, SFTP and the web
+     * console, and the panel keeps a copy so it can show it — the new value
+     * is stored only after the container has accepted it, so a failed call
+     * leaves the previous password valid.
+     *
+     * At least 12 characters; a colon or a line break is rejected because the
+     * guest's account file uses them as separators.
+     *
+     * @throws ApiException
+     * @throws GuzzleException
+     */
+    public function setRootPassword(string $uuid, string $password): array
+    {
+        return $this->client->patch("{$this->basePath}/{$uuid}/root-password", [
+            'password' => $password,
+        ]);
+    }
+
+    /**
+     * Point a domain at this service, or pass null to clear it.
+     *
+     * A node shares one public IPv4 between all its containers, so a web
+     * service is only reachable by name once the edge proxy knows which
+     * hostname belongs to which container. This call saves the domain and
+     * republishes the proxy in one step; HTTPS is issued automatically once
+     * the name resolves to the node.
+     *
+     * Until a domain is set the service is still reachable on its forwarded
+     * port — see allocations().
+     *
+     * @throws ApiException
+     * @throws GuzzleException
+     */
+    public function setDomain(string $uuid, ?string $domain): array
+    {
+        return $this->client->patch("{$this->basePath}/{$uuid}/domain", [
+            'domain' => $domain,
+        ]);
+    }
+
+    /**
      * Get live resource usage / status for a cloud service.
      *
      * @throws ApiException
@@ -233,12 +276,15 @@ class CloudServices
      * Before the LXC backend this returned `token` + `websocket_url` +
      * `subprotocols` for a daemon socket; those keys are gone.
      *
+     * @param string $type 'serial' for the xterm TTY, 'vnc' for the graphical
+     *                     console. Anything else falls back to 'serial'.
+     *
      * @throws ApiException
      * @throws GuzzleException
      */
-    public function consoleToken(string $uuid): array
+    public function consoleToken(string $uuid, string $type = 'serial'): array
     {
-        return $this->client->post("{$this->basePath}/{$uuid}/console-token");
+        return $this->client->post("{$this->basePath}/{$uuid}/console-token", ['type' => $type]);
     }
 
     /**

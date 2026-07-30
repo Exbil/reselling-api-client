@@ -550,8 +550,10 @@ addressed by their UUID.
 | `reinstall(string $uuid, array $options = [])` | Reinstall a service — see options below |
 | `status(string $uuid)` | Live resource usage / status |
 | `sendCommand(string $uuid, string $command)` | Send a console command (one-shot REST) |
-| `consoleToken(string $uuid)` | Open a single-use console session and return its URL |
+| `consoleToken(string $uuid, string $type = 'serial')` | Open a single-use console session and return its URL — `serial` or `vnc` |
 | `allocations(string $uuid)` | List every port allocation with role + protocol + description |
+| `setRootPassword(string $uuid, string $password)` | Change the container's root password (SSH, SFTP, console) |
+| `setDomain(string $uuid, ?string $domain)` | Point a domain at the service, or `null` to clear it |
 
 ```php
 // === ORDER FLOW ============================================
