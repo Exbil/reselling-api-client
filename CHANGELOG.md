@@ -51,7 +51,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`create()`** no longer accepts a `docker_image` override — templates are
   container images no more.
 
-
 ### Removed
 - **Container Registries**: `$client->cloudServices()->registries()` and the
   whole `CloudServices\Registries` class. The registry is no longer a product
@@ -60,6 +59,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   through `cloudServices()->create()` with `template_slug: "lxc-registry"`
   like any other service. The `/products/cloudservices/registries/*`
   endpoints are gone from the API.
+
 ## [1.1.0] - 2026-06-25
 
 ### Added
