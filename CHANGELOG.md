@@ -17,6 +17,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   endpoints are gone from the API.
 
 ### Changed
+- **`cpu_limit` is a whole core count**, not a percentage of one core. Where
+  you sent `200` for two cores, send `2`. This applies to `create()` and
+  `updateResources()`, and is what `get()` and `getAll()` return. Pricing is
+  unchanged — the per-core rate was always the unit being charged, the panel
+  merely divided by 100 on the way in.
 - **`consoleToken()`** returns a single-use console URL instead of a
   WebSocket token: `{kind: "url", url, expires_in_sec}`. The previous
   `token`, `subprotocols`, `websocket_url` and `stats_websocket_url` keys no

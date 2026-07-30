@@ -93,8 +93,9 @@ class CloudServices
      * Create a new cloud service.
      *
      * @param array $config Service configuration. Required: node_id, template_slug,
-     *                      name, memory_limit, disk_limit, cpu_limit. Optional:
-     *                      team_id, description, environment.
+     *                      name, memory_limit (MB), disk_limit (MB),
+     *                      cpu_limit (whole CPU cores). Optional: team_id,
+     *                      description, environment.
      *
      * @throws ApiException
      * @throws GuzzleException
@@ -141,6 +142,9 @@ class CloudServices
 
     /**
      * Update memory/disk/cpu allocation for a running service.
+     *
+     * cpu_limit is a whole core count. A container's disk can only grow —
+     * a smaller value is ignored rather than rejected.
      *
      * @param array{memory_limit:int, disk_limit:int, cpu_limit:int} $resources
      * @throws ApiException
