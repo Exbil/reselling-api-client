@@ -5,6 +5,24 @@ All notable changes to `exbil/reselling-api-client` are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.0] - 2026-07-31
+
+### Added
+- **`metrics($uuid, $range = '24h')`** — the recorded resource history: CPU,
+  memory, disk, network and disk I/O over `1h`, `24h`, `7d` or `30d`.
+
+  `status()` returns one instantaneous reading, so charting it only ever shows
+  what you observed while your own process was running — a fresh page starts
+  with an empty graph. These samples are collected server-side and outlive the
+  caller, which is what makes a "last 24 hours" view possible.
+
+  Points are bucketed so the series stays drawable (a month at raw resolution
+  is tens of thousands of rows). `bucket` is the slot width in seconds; `ts` is
+  milliseconds, ready for a JavaScript `Date`. Gauges are averaged across a
+  bucket, cumulative counters take the maximum. An unrecognised range falls
+  back to the default instead of failing, and the response echoes both the
+  range applied and `available_ranges`.
+
 ## [2.1.0] - 2026-07-30
 
 ### Added

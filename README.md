@@ -549,6 +549,7 @@ addressed by their UUID.
 | `delete(string $uuid)` | Delete a service |
 | `reinstall(string $uuid, array $options = [])` | Reinstall a service — see options below |
 | `status(string $uuid)` | Live resource usage / status |
+| `metrics(string $uuid, string $range = '24h')` | Recorded resource history — `1h`, `24h`, `7d` or `30d` |
 | `sendCommand(string $uuid, string $command)` | Send a console command (one-shot REST) |
 | `consoleToken(string $uuid, string $type = 'serial')` | Open a single-use console session and return its URL — `serial` or `vnc` |
 | `allocations(string $uuid)` | List every port allocation with role + protocol + description |

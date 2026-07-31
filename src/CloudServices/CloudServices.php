@@ -240,6 +240,35 @@ class CloudServices
     }
 
     /**
+     * The recorded resource history — CPU, memory, disk, network and disk I/O.
+     *
+     * `status()` is a single instantaneous reading, so charting it means
+     * charting only what you observed while your own process was running.
+     * These samples are collected server-side and outlive the caller, which is
+     * what makes a "last 24 hours" view possible at all.
+     *
+     * Returned points are bucketed to keep the series drawable — a month at
+     * raw resolution is tens of thousands of rows for a few hundred pixels.
+     * `bucket` is that slot width in seconds and `ts` is milliseconds, ready
+     * for a JavaScript Date.
+     *
+     * An unrecognised $range falls back to the default rather than failing;
+     * the response echoes the range that was actually applied, alongside
+     * `available_ranges`.
+     *
+     * @param  string  $range  One of 1h, 24h, 7d, 30d.
+     *
+     * @throws ApiException
+     * @throws GuzzleException
+     */
+    public function metrics(string $uuid, string $range = '24h'): array
+    {
+        return $this->client->get("{$this->basePath}/{$uuid}/metrics", [
+            'range' => $range,
+        ]);
+    }
+
+    /**
      * Send a command to the service console.
      *
      * Only backends that run a single foreground process with a stdin to pipe
