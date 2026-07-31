@@ -681,6 +681,7 @@ boundaries are refused with 403 unless the caller passes
 | Method | Description |
 |--------|-------------|
 | `getAll(string $uuid)` | All backups for a service (with `team_id`, `cloudservice_id`, `origin`, `is_locked`) |
+| `quota(string $uuid)` | Slot accounting: included, used, paid, ceiling and the monthly price of an extra slot |
 | `create(string $uuid, ?string $name = null, array $ignoredFiles = [])` | Create a backup of the current volume |
 | `upload(string $uuid, string $filePath)` | Upload a `.tar.gz` archive previously downloaded from this platform |
 | `delete(string $uuid, string $backupId)` | Delete a backup (sends a deletion-certificate mail to the owner) |

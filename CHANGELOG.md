@@ -5,6 +5,22 @@ All notable changes to `exbil/reselling-api-client` are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.3.0] - 2026-07-31
+
+### Added
+- **`backups()->quota($uuid)`** — how many backup slots a service has, uses
+  and may still fill.
+
+  None of it can be derived from the backup list. The included allowance, the
+  ceiling and whether extra slots are sold at all are decisions of the
+  operator's per-node price list, so a consumer that only counted archives had
+  no way to tell a customer what the next backup would cost — or that it would
+  cost anything.
+
+  Returns `used`, `free`, `max`, `paid`, `remaining` and `price`, the monthly
+  fee per slot beyond the free ones. A `price` of `null` means extra slots are
+  not on offer on that node, which makes the included allowance the hard limit.
+
 ## [2.2.0] - 2026-07-31
 
 ### Added

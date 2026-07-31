@@ -34,6 +34,37 @@ class Backups
     }
 
     /**
+     * Slot accounting for a service's backups.
+     *
+     * None of this can be derived from the list: how many slots come with
+     * the service, the ceiling, and whether extra slots are sold on that node
+     * and at what monthly price are decisions of the operator's price list.
+     * Read it before offering a "create backup" button so the customer learns
+     * the cost beforehand instead of meeting a 422 afterwards.
+     *
+     *   [
+     *     'used'      => 3,     // archives that exist
+     *     'free'      => 3,     // included with the service
+     *     'max'       => 10,    // hard ceiling, paid slots included
+     *     'paid'      => 0,     // occupied slots beyond the free ones
+     *     'remaining' => 7,     // how many more may be created
+     *     'price'     => 0.5,   // EUR per month per extra slot, null if none
+     *   ]
+     *
+     * A `price` of null means the node does not sell extra slots, so the
+     * included allowance is also the hard limit.
+     *
+     * @param  string  $uuid  Service UUID
+     *
+     * @throws ApiException
+     * @throws GuzzleException
+     */
+    public function quota(string $uuid): array
+    {
+        return $this->client->get("{$this->basePath}/{$uuid}/backups/quota");
+    }
+
+    /**
      * Create a new backup. The daemon snapshots the current
      * cloudservice_id + team_id onto the row so a later restore
      * can enforce both guards.
